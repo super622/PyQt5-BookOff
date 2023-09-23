@@ -193,10 +193,10 @@ class Ui_MainWindow(object):
 		row = index.row()
 		col = index.column()
 		print(col)
-		print(self.ui_handler.products_list[row])
-		if self.ui_handler.products_list[row] != "":
+		print(self.ui_handler.products_list[row]['url'])
+		if col == 1 and self.ui_handler.products_list[row] != "":
 			import webbrowser
-			webbrowser.open(self.ui_handler.products_list[row])
+			webbrowser.open(self.ui_handler.products_list[row]['url'])
 
 	def handle_btn_start_clicked(self):
 		if self.isStop:
@@ -249,7 +249,6 @@ class Ui_MainWindow(object):
 			self.btn_export.setEnabled(False)
 			self.spinner.start()
 		elif response_text == "stop":
-			self.spinner.stop()
 			self.btn_start.setText("開始")
 			self.btn_export.setEnabled(True)
 			self.btn_start.setEnabled(True)
@@ -258,6 +257,7 @@ class Ui_MainWindow(object):
 			self.progressBar.setValue(0)
 			self.statusLabel.setText("Reading ... ")
 		else:
+			self.spinner.stop()
 			self.statusLabel.setVisible(False)
 			self.progressBar.setVisible(True)
 			self.progressBar.setValue(round(float(response_text)))
