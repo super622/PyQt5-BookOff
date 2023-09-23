@@ -121,9 +121,7 @@ class Ui_MainWindow(object):
 		self.tbl_dataview = QtWidgets.QTableView(self.centralwidget)
 		self.tbl_dataview.setObjectName("tbl_dataview")
 		self.tbl_dataview.doubleClicked.connect(self.handle_cell_click)
-		header_labels = ["Result"]
-		model = QtGui.QStandardItemModel(0, 0)
-		model.setHorizontalHeaderLabels(header_labels)
+		model = QtGui.QStandardItemModel(0, 1)
 		self.tbl_dataview.setModel(model)
 		self.horizontalLayout.addWidget(self.tbl_dataview)
 		self.horizontalLayout.setStretch(0, 6)

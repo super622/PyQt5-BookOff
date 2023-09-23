@@ -27,27 +27,23 @@ class ActionManagement:
 		self.api_url = "https://sellingpartnerapi-fe.amazon.com"
 	
 	# drow table
-	def draw_table (self, products):
+	def draw_table(self, products):
 		table = self.main_window.findChild(QtWidgets.QTableView, "tbl_dataview")
-		model = QtGui.QStandardItemModel(len(products), 0)  # Adjust the number of columns accordingly
-		model.setHorizontalHeaderLabels(["result"])
-
+        
+		model = QtGui.QStandardItemModel(len(products), 1)  # Adjust the number of columns accordingly
+        
 		for row, product in enumerate(products):
-			print(row)
-			print(product)
-			
-			for col, key in enumerate({"Result"}):
-				item = QtGui.QStandardItem(product)
+			for col, key in enumerate({"Result"}):  # This should be a list, not a set
+				item = QtGui.QStandardItem(str(product))  # Convert 'product' to a string
 				item.setEditable(True)
 				model.setItem(row, col, item)
+        
 		table.setModel(model)
-		
-		# Set bold font for the header
 		header = table.horizontalHeader()
-		font = header.font()
+		font = QtGui.QFont()
 		font.setBold(True)
 		header.setFont(font)
-	
+
 	# get Access Token
 	def get_access_token(self):
 		url = "https://api.amazon.co.jp/auth/o2/token"
