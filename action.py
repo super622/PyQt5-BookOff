@@ -31,6 +31,8 @@ class ActionManagement:
 		for row, product in enumerate(products):
 			for col, key in enumerate(['jan', 'url', 'stock', 'site_price', 'amazon_price', 'price_status']):  # This should be a list, not a set
 				print(product)
+				print(row)
+				print(key)
 				item = QtGui.QStandardItem(product.get(key, ""))  # Convert 'product' to a string
 				item.setEditable(False)
 				model.setItem(row, col, item)
@@ -260,9 +262,6 @@ class ActionManagement:
 
 				if((100 - percent) >= 35):
 					price_status = 'T'
-				
-				self.products_list.append(product_url)
-				self.draw_table(self.products_list)
 
 			product_data = {
 				'jan': key_code,
