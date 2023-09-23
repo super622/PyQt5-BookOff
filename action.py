@@ -240,7 +240,7 @@ class ActionManagement:
 			stock = ''
 
 			product_url = "https://shopping.bookoff.co.jp" + product_url
-			price = price[0]
+			price = int(price[0])
 
 			if len(stock_element) > 0:
 				stock = '在庫なし'
@@ -267,8 +267,8 @@ class ActionManagement:
 				'jan': key_code,
 				'url': product_url,
 				'stock': stock,
-				'site_price': price,
-				'amazon_price': other_price,
+				'site_price': str(price),
+				'amazon_price': str(other_price),
 				'price_status': price_status
 			}
 			self.products_list.append(product_data)
