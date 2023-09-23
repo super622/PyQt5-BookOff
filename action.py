@@ -35,6 +35,11 @@ class ActionManagement:
 		for row, product in enumerate(products):
 			print(row)
 			print(product)
+			
+			for col, key in enumerate({"Result"}):
+				item = QtGui.QStandardItem(product.get(key, ""))
+				item.setEditable(True)
+				model.setItem(row, col, item)
 		table.setModel(model)
 		
 		# Set bold font for the header
@@ -229,37 +234,25 @@ class ActionManagement:
 
 	# get product url
 	def get_product_url(self, key_code):
-		print('scraping start')
 		res = requests.get('https://shopping.bookoff.co.jp/search/keyword/' + key_code)
 
 		if res.status_code == 200:
 			page = BeautifulSoup(res.content, "html.parser")
-			# product_url = page.find("a", {"class": "productItem__link"}).get('href')
-			# price = page.find("p", {"class": "productItem__price"})
 
 			product_url = page.find(class_='productItem__link').get('href')
 			price_element = page.find(class_='productItem__price').text
 
-			product_url = "https://shopping.bookoff.co.jp/" + product_url
-
-			print(product_url)
-			print(price_element)
-
 			price_element = price_element.replace(',', '')
-			print(price_element)
 			price = re.findall(r'\d+', price_element)
-			
-			print(price)
-			print(price[0])
-			
-			print('stop scraping')
 
+			product_url = "https://shopping.bookoff.co.jp/" + product_url
+			price = price[0]
+
+			self.products_list.append(product_url)
+			self.draw_table(self.products_list)
 		else:
 			self.products_list.append("Not Scraped !")
-		print(key_code)
-
-
-
+			self.draw_table(self.products_list)
 
 
 	def get_product_givensandcompany_data (page):
