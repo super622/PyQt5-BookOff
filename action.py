@@ -35,9 +35,8 @@ class ActionManagement:
 
 		for row, product in enumerate(products):
 			for col, key in enumerate({"result"}):  # This should be a list, not a set
-				print(col)
 				item = QtGui.QStandardItem(str(product))  # Convert 'product' to a string
-				item.setEditable(True)
+				item.setEditable(False)
 				model.setItem(row, col, item)
         
 		table.setModel(model)

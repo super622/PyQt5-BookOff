@@ -25,12 +25,14 @@ class RequestThread(QThread):
 			self.request_completed.emit("reading")
 			# self.ui_handler.read_product_list_from_file()
 			time.sleep(5)
-			key_code = '4580128895383'
-			self.ui_handler.get_product_url(key_code)
-					
-		# val = 100 / len(self.keyword_arr) * len(self.ui_handler.products)
-		# self.request_completed.emit(str(val))
-		
+			key_arr = ['4580128895130', '4580128895383']
+			for key in key_arr:
+				key_code = key
+				self.ui_handler.get_product_url(key_code)
+
+				progress = 100 / len(key_arr) * len(self.ui_handler.products_list)
+				self.request_completed.emit(str(progress))
+
 		self.request_completed.emit("stop")
 		self.quit()
 
@@ -120,6 +122,7 @@ class Ui_MainWindow(object):
 		self.horizontalLayout.setObjectName("horizontalLayout")
 		self.tbl_dataview = QtWidgets.QTableView(self.centralwidget)
 		self.tbl_dataview.setObjectName("tbl_dataview")
+		self.tbl_dataview.setColumnWidth(16777215)
 		self.tbl_dataview.doubleClicked.connect(self.handle_cell_click)
 		header_labels = ["URL"]
 		model = QtGui.QStandardItemModel(0, 0)
@@ -285,6 +288,7 @@ class Ui_MainWindow(object):
 			self.progressBar.setValue(0)
 			self.statusLabel.setText("Reading ... ")
 		else:
+			self.statusLabel.setVisible(False)
 			self.progressBar.setVisible(True)
 			self.progressBar.setValue(round(float(response_text)))
 	
