@@ -133,7 +133,6 @@ class Ui_MainWindow(object):
 		model.setHorizontalHeaderLabels(header_labels)
 		self.tbl_dataview.setModel(model)
 		self.horizontalLayout.addWidget(self.tbl_dataview)
-		self.horizontalLayout.setStretch(0, 6)
 		self.verticalLayout.addLayout(self.horizontalLayout)
 
 		self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
