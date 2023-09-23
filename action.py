@@ -1,5 +1,6 @@
 import gzip
 import os
+import re
 import requests
 import time
 from pathlib import Path
@@ -236,10 +237,16 @@ class ActionManagement:
 			# price = page.find("p", {"class": "productItem__price"})
 
 			product_url = page.find(class_='productItem__link').get('href')
-			price_element = page.find(class_='productItem__price').prettify()
+			price_element = page.find(class_='productItem__price').text
+
+			product_url = "https://shopping.bookoff.co.jp/" + product_url
 
 			print(product_url)
 			print(price_element)
+
+			price = re.findall(r'\d+', price_element)
+
+			print(price)
 
 		else:
 			self.products_list.append("Not Scraped !")
