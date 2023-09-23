@@ -30,7 +30,7 @@ class ActionManagement:
 	def draw_table(self, products):
 		table = self.main_window.findChild(QtWidgets.QTableView, "tbl_dataview")
         
-		model = QtGui.QStandardItemModel(len(products), 1)  # Adjust the number of columns accordingly
+		model = QtGui.QStandardItemModel(len(products), 2)  # Adjust the number of columns accordingly
         
 		for row, product in enumerate(products):
 			for col, key in enumerate({"Result"}):  # This should be a list, not a set
