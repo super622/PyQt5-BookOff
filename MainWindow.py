@@ -125,8 +125,8 @@ class Ui_MainWindow(object):
 		self.horizontalLayout.setObjectName("horizontalLayout")
 		self.tbl_dataview = QtWidgets.QTableView(self.centralwidget)
 		self.tbl_dataview.setObjectName("tbl_dataview")
-		self.tbl_dataview.setMaximumWidth(QtCore.QSize(16777215, 16777215))
-		self.tbl_dataview.setMinimumWidth(QtCore.QSize(16777215, 16777215))
+		self.tbl_dataview.setMaximumWidth(16777215)
+		self.tbl_dataview.setMinimumWidth(16777215)
 		self.tbl_dataview.doubleClicked.connect(self.handle_cell_click)
 		header_labels = ["JAN", "URL", "在庫", "サイト価格", "Amazonの価格", "価格差"]
 		model = QtGui.QStandardItemModel(0, 5)
