@@ -108,6 +108,7 @@ class Ui_MainWindow(object):
 		self.btn_start.setMinimumSize(QtCore.QSize(16777215, 30))
 		self.btn_start.setMaximumSize(QtCore.QSize(16777215, 30))
 		self.btn_start.setObjectName("btn_start")
+		self.btn_start.setText("開始")
 		self.btn_start.clicked.connect(self.handle_btn_start_clicked)
 		self.horizontalLayout_2.addWidget(self.btn_start)
 
@@ -115,7 +116,7 @@ class Ui_MainWindow(object):
 		self.btn_export.setMinimumSize(QtCore.QSize(16777215, 30))
 		self.btn_export.setMaximumSize(QtCore.QSize(16777215, 30))
 		self.btn_export.setObjectName("btn_export")
-		self.btn_export.setText("Export")
+		self.btn_export.setText("エクスポート")
 		self.btn_export.setEnabled(False)
 		self.btn_export.clicked.connect(self.savefile)
 		self.horizontalLayout_2.addWidget(self.btn_export)
@@ -199,7 +200,7 @@ class Ui_MainWindow(object):
 
 	def handle_btn_start_clicked(self):
 		if self.isStop:
-			self.btn_start.setText("Stop")
+			self.btn_start.setText("停止")
 			self.ui_handler.products_list = []
 			self.request_thread = RequestThread(self.ui_handler)
 			self.request_thread.request_completed.connect(self.handle_request_completed)
@@ -249,7 +250,7 @@ class Ui_MainWindow(object):
 			self.spinner.start()
 		elif response_text == "stop":
 			self.spinner.stop()
-			self.btn_start.setText("Search")
+			self.btn_start.setText("開始")
 			self.btn_export.setEnabled(True)
 			self.btn_start.setEnabled(True)
 			self.isStop = True
@@ -263,5 +264,5 @@ class Ui_MainWindow(object):
 	
 	def retranslateUi(self, MainWindow):
 		_translate = QtCore.QCoreApplication.translate
-		MainWindow.setWindowTitle(_translate("MainWindow", "Amazon - BookOff"))
-		self.btn_start.setText(_translate("MainWindow", "Start"))
+		MainWindow.setWindowTitle(_translate("MainWindow", "Amazon - BookOffOnline"))
+		self.btn_start.setText(_translate("MainWindow", "開始"))
