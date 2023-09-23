@@ -30,10 +30,12 @@ class ActionManagement:
 	def draw_table(self, products):
 		table = self.main_window.findChild(QtWidgets.QTableView, "tbl_dataview")
         
-		model = QtGui.QStandardItemModel(len(products), 2)  # Adjust the number of columns accordingly
-        
+		model = QtGui.QStandardItemModel(len(products), 1)  # Adjust the number of columns accordingly
+		model.setHorizontalHeaderLabels(['URL'])
+
 		for row, product in enumerate(products):
 			for col, key in enumerate({"result"}):  # This should be a list, not a set
+				print(col)
 				item = QtGui.QStandardItem(str(product))  # Convert 'product' to a string
 				item.setEditable(True)
 				model.setItem(row, col, item)
@@ -244,7 +246,7 @@ class ActionManagement:
 			product_url = "https://shopping.bookoff.co.jp/" + product_url
 			price = price[0]
 
-			self.products_list.append({'result': product_url})
+			self.products_list.append(product_url)
 			self.draw_table(self.products_list)
 		else:
 			self.products_list.append("Not Scraped !")
