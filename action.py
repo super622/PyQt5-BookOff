@@ -37,7 +37,7 @@ class ActionManagement:
 			print(product)
 			
 			for col, key in enumerate({"Result"}):
-				item = QtGui.QStandardItem(product.get(key, ""))
+				item = QtGui.QStandardItem(product)
 				item.setEditable(True)
 				model.setItem(row, col, item)
 		table.setModel(model)
