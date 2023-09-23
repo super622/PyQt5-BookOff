@@ -243,9 +243,10 @@ class ActionManagement:
 
 			print(product_url)
 			print(price_element)
-
+			
+			price_element.replace(',', '')
 			price = re.findall(r'\d+', price_element)
-
+			
 			print(price)
 
 		else:
