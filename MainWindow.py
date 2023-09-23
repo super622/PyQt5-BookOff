@@ -191,6 +191,8 @@ class Ui_MainWindow(object):
 	def handle_cell_click(self, index):
 		row = index.row()
 		col = index.column()
+		print(col)
+		print(self.ui_handler.products_list[row])
 		if self.ui_handler.products_list[row] != "":
 			import webbrowser
 			webbrowser.open(self.ui_handler.products_list[row])
@@ -220,55 +222,25 @@ class Ui_MainWindow(object):
 			font.bold = True
 			style.font = font
 			model = self.tbl_dataview.model()
-			if self.cmb_export_type.currentText() == "Disco'd":
-				sheet.write(0, 0, 'Variant SKU [ID]', style = style)
-				sheet.write(0, 1, 'COMMAND', style = style)
-				sheet.write(0, 2, 'STATUS', style = style)
-				sheet.write(0, 3, 'PUBLISHED', style = style)
-				sheet.write(0, 4, 'PUBLISHED SCOPE', style = style)
-				sheet.write(0, 5, 'Variant Inventory Tracker', style = style)
-				sheet.write(0, 6, 'Variant Inventory Policy', style = style)
-				sheet.write(0, 7, 'Variant Fulfillment Service', style = style)
-				sheet.write(0, 8, 'Variant Inventory Qty', style = style)
-				row_count = 1
-				for r in range(model.rowCount()):
-					if model.data(model.index(r, 3)) == self.cmb_export_type.currentText():
-						sheet.write(row_count, 0, model.data(model.index(r, 0)), style = style)
-						sheet.write(row_count, 1, "MERGE", style = style)
-						sheet.write(row_count, 2, "Disco'd", style = style)
-						sheet.write(row_count, 3, "FALSE", style = style)
-						sheet.write(row_count, 4, "global", style = style)
-						sheet.write(row_count, 5, "shopify", style = style)
-						sheet.write(row_count, 6, "deny", style = style)
-						sheet.write(row_count, 7, "manual", style = style)
-						sheet.write(row_count, 8, "0", style = style)
-						row_count += 1
-				wbk.save(filename)
-				return
-			row_count = 0
-			col_count = 1
 			
-			for c in range(model.columnCount()):
-				if c != 2:  # Skip column 3
-					text = model.headerData(c, QtCore.Qt.Horizontal)
-					sheet.write(0, c + col_count, text, style = style)
-				else:
-					col_count = 0
-			col_count = 1
+			sheet.write(0, 0, 'JAN', style = style)
+			sheet.write(0, 1, 'URL', style = style)
+			sheet.write(0, 2, '在庫', style = style)
+			sheet.write(0, 3, 'サイト価格', style = style)
+			sheet.write(0, 4, 'Amazonの価格', style = style)
+			sheet.write(0, 5, '価格差', style = style)
+
+			row_count = 1
 			for r in range(model.rowCount()):
-				if model.data(model.index(r, 3)) == self.cmb_export_type.currentText() or self.cmb_export_type.currentText() == "All":
-					row_count += 1
-					sheet.write(row_count, 0, row_count, style = style)
-					for c in range(model.columnCount()):
-						if c != 2:
-							text = model.data(model.index(r, c))
-							if c == 0:
-								col_count = 1
-							sheet.write(row_count, c + col_count, text)
-						else:
-							col_count = 0
-			
+				sheet.write(row_count, 0, model.data(model.index(row_count, 0)), style = style)
+				sheet.write(row_count, 1, model.data(model.index(row_count, 1)), style = style)
+				sheet.write(row_count, 2, model.data(model.index(row_count, 2)), style = style)
+				sheet.write(row_count, 3, model.data(model.index(row_count, 3)), style = style)
+				sheet.write(row_count, 4, model.data(model.index(row_count, 4)), style = style)
+				sheet.write(row_count, 5, model.data(model.index(row_count, 5)), style = style)
+				row_count += 1
 			wbk.save(filename)
+			return
 	
 	def handle_request_completed(self, response_text):
 		if response_text == "start":
