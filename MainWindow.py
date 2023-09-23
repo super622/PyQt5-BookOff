@@ -127,8 +127,8 @@ class Ui_MainWindow(object):
 		self.tbl_dataview.setObjectName("tbl_dataview")
 		self.tbl_dataview.setColumnWidth(0, 16777215)
 		self.tbl_dataview.doubleClicked.connect(self.handle_cell_click)
-		header_labels = ["URL"]
-		model = QtGui.QStandardItemModel(0, 0)
+		header_labels = ["URL", "Stock", "Price"]
+		model = QtGui.QStandardItemModel(0, 2)
 		model.setHorizontalHeaderLabels(header_labels)
 		self.tbl_dataview.setModel(model)
 		self.horizontalLayout.addWidget(self.tbl_dataview)
@@ -271,7 +271,6 @@ class Ui_MainWindow(object):
 			wbk.save(filename)
 	
 	def handle_request_completed(self, response_text):
-		print(response_text)
 		if response_text == "start":
 			self.statusLabel.setText("Downloading ... ")
 			self.btn_export.setEnabled(False)

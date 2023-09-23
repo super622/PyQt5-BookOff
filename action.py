@@ -25,12 +25,12 @@ class ActionManagement:
 	def draw_table(self, products):
 		table = self.main_window.findChild(QtWidgets.QTableView, "tbl_dataview")
         
-		model = QtGui.QStandardItemModel(len(products), 0)  # Adjust the number of columns accordingly
+		model = QtGui.QStandardItemModel(len(products), 2)  # Adjust the number of columns accordingly
 		model.setHorizontalHeaderLabels(['URL'])
 
 		for row, product in enumerate(products):
-			for col, key in enumerate({"result"}):  # This should be a list, not a set
-				item = QtGui.QStandardItem(str(product))  # Convert 'product' to a string
+			for col, key in enumerate(['url', 'stock', 'price']):  # This should be a list, not a set
+				item = QtGui.QStandardItem(product.get(key, ""))  # Convert 'product' to a string
 				item.setEditable(False)
 				model.setItem(row, col, item)
         
@@ -241,7 +241,11 @@ class ActionManagement:
 			product_url = "https://shopping.bookoff.co.jp" + product_url
 			price = price[0]
 
+			print('=============================')
 			print(len(stock_element))
+			print(price)
+			print(product_url)
+			print('=============================')
 
 			# if other_price > price:
 			# 	percent = price / (other_price / 100)
@@ -253,7 +257,12 @@ class ActionManagement:
 			# 	self.products_list.append(product_url)
 			# 	self.draw_table(self.products_list)
 
-			self.products_list.append(product_url)
+			product_data = {
+				'url': product_url,
+				'stock': '0',
+				'price': 'T'
+			}
+			self.products_list.append(product_data)
 			self.draw_table(self.products_list)
 		else:
 			self.products_list.append("Not Scraped !")
