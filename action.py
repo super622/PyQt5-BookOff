@@ -248,7 +248,15 @@ class ActionManagement:
 
 			print(len(stock_element))
 
-			
+			# if other_price > price:
+			# 	percent = price / (other_price / 100)
+			# 	flag = False
+
+			# 	if((100 - percent) >= 35):
+			# 		flag = True
+				
+			# 	self.products_list.append(product_url)
+			# 	self.draw_table(self.products_list)
 
 			self.products_list.append(product_url)
 			self.draw_table(self.products_list)

@@ -28,7 +28,8 @@ class RequestThread(QThread):
 			key_arr = ['4580128895130', '4580128895383', '4988067000125']
 			for key in key_arr:
 				key_code = key
-				self.ui_handler.get_product_url(key_code)
+				other_price = 10000
+				self.ui_handler.get_product_url(key_code, other_price)
 
 				progress = 100 / len(key_arr) * len(self.ui_handler.products_list)
 				self.request_completed.emit(str(progress))
