@@ -126,7 +126,7 @@ class Ui_MainWindow(object):
 		self.tbl_dataview = QtWidgets.QTableView(self.centralwidget)
 		self.tbl_dataview.setObjectName("tbl_dataview")
 		self.tbl_dataview.doubleClicked.connect(self.handle_cell_click)
-		header_labels = ["URL", "Stock", "Price"]
+		header_labels = ["JAN", "URL", "在庫", "サイト価格", "Amazonの価格", "価格差"]
 		model = QtGui.QStandardItemModel(0, 2)
 		model.setHorizontalHeaderLabels(header_labels)
 		self.tbl_dataview.setModel(model)

@@ -26,14 +26,14 @@ class ActionManagement:
 		table = self.main_window.findChild(QtWidgets.QTableView, "tbl_dataview")
         
 		model = QtGui.QStandardItemModel(len(products), 2)  # Adjust the number of columns accordingly
-		model.setHorizontalHeaderLabels(["URL", "Stock", "Price"])
+		model.setHorizontalHeaderLabels(["JAN", "URL", "在庫", "サイト価格", "Amazonの価格", "価格差"])
 
 		for row, product in enumerate(products):
-			for col, key in enumerate(['url', 'stock', 'price']):  # This should be a list, not a set
+			for col, key in enumerate(['jan', 'url', 'stock', 'site_price', 'amazon_price', 'price_status']):  # This should be a list, not a set
 				item = QtGui.QStandardItem(product.get(key, ""))  # Convert 'product' to a string
 				item.setEditable(False)
 				model.setItem(row, col, item)
-        
+
 		table.setModel(model)
 		header = table.horizontalHeader()
 		font = QtGui.QFont()
@@ -237,9 +237,15 @@ class ActionManagement:
 
 			price_element = price_element.replace(',', '')
 			price = re.findall(r'\d+', price_element)
+			stock = ''
 
 			product_url = "https://shopping.bookoff.co.jp" + product_url
 			price = price[0]
+
+			if len(stock_element) > 0:
+				stock = '在庫なし'
+			else:
+				stock = ''
 
 			print('=============================')
 			print(len(stock_element))
@@ -247,20 +253,23 @@ class ActionManagement:
 			print(product_url)
 			print('=============================')
 
-			# if other_price > price:
-			# 	percent = price / (other_price / 100)
-			# 	flag = False
+			if other_price > price:
+				percent = price / (other_price / 100)
+				price_status = ''
 
-			# 	if((100 - percent) >= 35):
-			# 		flag = True
+				if((100 - percent) >= 35):
+					price_status = 'T'
 				
-			# 	self.products_list.append(product_url)
-			# 	self.draw_table(self.products_list)
+				self.products_list.append(product_url)
+				self.draw_table(self.products_list)
 
 			product_data = {
+				'jan': key_code,
 				'url': product_url,
-				'stock': str(len(stock_element)),
-				'price': 'T'
+				'stock': stock,
+				'site_price': price,
+				'amazon_price': other_price,
+				'price_status': price_status
 			}
 			self.products_list.append(product_data)
 			self.draw_table(self.products_list)
