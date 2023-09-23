@@ -25,7 +25,7 @@ class RequestThread(QThread):
 			self.request_completed.emit("reading")
 			# self.ui_handler.read_product_list_from_file()
 			time.sleep(5)
-			key_code = ''
+			key_code = '4580128895383'
 			self.ui_handler.get_product_url(key_code)
 					
 		# val = 100 / len(self.keyword_arr) * len(self.ui_handler.products)

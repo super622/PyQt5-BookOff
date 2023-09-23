@@ -228,6 +228,21 @@ class ActionManagement:
 
 	# get product url
 	def get_product_url(self, key_code):
+		res = requests.get('https://shopping.bookoff.co.jp/search/keyword/' + key_code)
+
+		if res.status_code == 200:
+			page = BeautifulSoup(res.content, "html.parser")
+			# product_url = page.find("a", {"class": "productItem__link"}).get('href')
+			# price = page.find("p", {"class": "productItem__price"})
+
+			product_url = page.find(class_='productItem__link').get('href')
+			price_element = page.find(class_='productItem__price').prettify()
+
+			print(product_url)
+			print(price_element)
+
+		else:
+			self.products_list.append("Not Scraped !")
 		print(key_code)
 
 
