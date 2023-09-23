@@ -1,12 +1,13 @@
 import time
 import xlwt
-from PyQt5 import QtCore, QtWidgets, Qt, QtGui
-from PyQt5.QtCore import QThread, pyqtSignal, QSettings, QRect, QSize
-from PyQt5.QtGui import QColor, QIcon
-from PyQt5.QtWidgets import QFileDialog, QMainWindow, QProgressBar
-from pyqtspinner import WaitingSpinner
+
 import action
 
+from PyQt5 import QtCore, QtWidgets, Qt, QtGui
+from PyQt5.QtCore import QThread, pyqtSignal, QSettings, QSize
+from PyQt5.QtGui import QColor
+from PyQt5.QtWidgets import QFileDialog, QProgressBar
+from pyqtspinner import WaitingSpinner
 
 class RequestThread(QThread):
 	request_completed = pyqtSignal(str)
@@ -60,6 +61,7 @@ class Ui_MainWindow(object):
 		self.request_thread = None
 		self.ui_handler = action.ActionManagement(self)
 
+	# create GUI
 	def setupUi(self, MainWindow):
 		MainWindow.setObjectName("MainWindow")
 		MainWindow.setWindowModality(QtCore.Qt.ApplicationModal)
@@ -161,13 +163,9 @@ class Ui_MainWindow(object):
 		)
 		self.spinner.setObjectName("spinner")
 		self.retranslateUi(MainWindow)
-		self.retranslateUi(MainWindow)
 		MainWindow.setWindowIcon(QtGui.QIcon('delivery.ico'))
 		QtCore.QMetaObject.connectSlotsByName(MainWindow)
 		self.loadSettings()
-
-	# self.loading_thread = threading.Thread(target=self.simulateLoading)
-	# self.loading_thread.start()
 
 	def closeEvent(self, event):
 		self.saveSettings()
@@ -193,12 +191,11 @@ class Ui_MainWindow(object):
 	def handle_cell_click(self, index):
 		row = index.row()
 		col = index.column()
-		if col == 9 and self.ui_handler.products_list[row] != "":
+		if self.ui_handler.products_list[row] != "":
 			import webbrowser
 			webbrowser.open(self.ui_handler.products_list[row])
-	
+
 	def handle_btn_start_clicked(self):
-		print(self.isStop)
 		if self.isStop:
 			self.btn_start.setText("Stop")
 			self.ui_handler.products_list = []
