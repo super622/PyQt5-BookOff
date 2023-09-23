@@ -230,7 +230,7 @@ class ActionManagement:
 			return ''
 
 	# get product url
-	def get_product_url(self, key_code):
+	def get_product_url(self, key_code, other_price):
 		res = requests.get('https://shopping.bookoff.co.jp/search/keyword/' + key_code)
 
 		if res.status_code == 200:
@@ -238,12 +238,17 @@ class ActionManagement:
 
 			product_url = page.find(class_='productItem__link').get('href')
 			price_element = page.find(class_='productItem__price').text
+			stock_element = page.find_all(class_="productInformation__stock")
 
 			price_element = price_element.replace(',', '')
 			price = re.findall(r'\d+', price_element)
 
-			product_url = "https://shopping.bookoff.co.jp/" + product_url
+			product_url = "https://shopping.bookoff.co.jp" + product_url
 			price = price[0]
+
+			print(len(stock_element))
+
+			
 
 			self.products_list.append(product_url)
 			self.draw_table(self.products_list)
