@@ -233,7 +233,7 @@ class ActionManagement:
 
 			product_url = page.find(class_='productItem__link').get('href')
 			price_element = page.find(class_='productItem__price').text
-			stock_element = page.find_all(class_="productInformation__stock__alert")
+			stock_element = page.find_all(class_="productItem__stock--alert")
 
 			price_element = price_element.replace(',', '')
 			price = re.findall(r'\d+', price_element)
@@ -259,7 +259,7 @@ class ActionManagement:
 
 			product_data = {
 				'url': product_url,
-				'stock': '0',
+				'stock': str(len(stock_element)),
 				'price': 'T'
 			}
 			self.products_list.append(product_data)
