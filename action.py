@@ -229,6 +229,7 @@ class ActionManagement:
 
 	# get product url
 	def get_product_url(self, key_code):
+		print('scraping start')
 		res = requests.get('https://shopping.bookoff.co.jp/search/keyword/' + key_code)
 
 		if res.status_code == 200:
@@ -243,11 +244,15 @@ class ActionManagement:
 
 			print(product_url)
 			print(price_element)
-			
-			price_element.replace(',', '')
+
+			price_element = price_element.replace(',', '')
+			print(price_element)
 			price = re.findall(r'\d+', price_element)
 			
 			print(price)
+			print(price[0])
+			
+			print('stop scraping')
 
 		else:
 			self.products_list.append("Not Scraped !")
