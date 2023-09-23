@@ -25,7 +25,7 @@ class ActionManagement:
 	def draw_table(self, products):
 		table = self.main_window.findChild(QtWidgets.QTableView, "tbl_dataview")
         
-		model = QtGui.QStandardItemModel(len(products), 2)  # Adjust the number of columns accordingly
+		model = QtGui.QStandardItemModel(len(products), 5)  # Adjust the number of columns accordingly
 		model.setHorizontalHeaderLabels(["JAN", "URL", "在庫", "サイト価格", "Amazonの価格", "価格差"])
 
 		for row, product in enumerate(products):
@@ -249,13 +249,7 @@ class ActionManagement:
 				stock = '在庫なし'
 			else:
 				stock = ''
-
-			print('=============================')
-			print(len(stock_element))
-			print(price)
-			print(product_url)
-			print('=============================')
-
+			
 			if other_price > price:
 				percent = price / (other_price / 100)
 				price_status = ''
