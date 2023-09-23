@@ -26,7 +26,7 @@ class ActionManagement:
 		table = self.main_window.findChild(QtWidgets.QTableView, "tbl_dataview")
         
 		model = QtGui.QStandardItemModel(len(products), 2)  # Adjust the number of columns accordingly
-		model.setHorizontalHeaderLabels(['URL'])
+		model.setHorizontalHeaderLabels(["URL", "Stock", "Price"])
 
 		for row, product in enumerate(products):
 			for col, key in enumerate(['url', 'stock', 'price']):  # This should be a list, not a set
@@ -233,7 +233,7 @@ class ActionManagement:
 
 			product_url = page.find(class_='productItem__link').get('href')
 			price_element = page.find(class_='productItem__price').text
-			stock_element = page.find_all(class_="productInformation__stock")
+			stock_element = page.find(class_="productInformation__stock__alert")
 
 			price_element = price_element.replace(',', '')
 			price = re.findall(r'\d+', price_element)
