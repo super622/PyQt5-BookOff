@@ -30,7 +30,7 @@ class ActionManagement:
 	def draw_table(self, products):
 		table = self.main_window.findChild(QtWidgets.QTableView, "tbl_dataview")
         
-		model = QtGui.QStandardItemModel(len(products), 1)  # Adjust the number of columns accordingly
+		model = QtGui.QStandardItemModel(len(products), 0)  # Adjust the number of columns accordingly
 		model.setHorizontalHeaderLabels(['URL'])
 
 		for row, product in enumerate(products):
