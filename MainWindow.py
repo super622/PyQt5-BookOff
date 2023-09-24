@@ -1,10 +1,8 @@
-import time
 import xlwt
-import types
 
 import action
 
-from PyQt5 import QtCore, QtWidgets, Qt, QtGui
+from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal, QSettings, QSize
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QFileDialog, QProgressBar
@@ -21,26 +19,35 @@ class RequestThread(QThread):
 		self.request_completed.emit("start")
 
 		if not self.ui_handler.main_window.isStop:
-			# result = self.ui_handler.product_list_download_from_amazon()
-			# print(result)
-			# if(type(result) == str):
-			# 	self.request_completed.emit(result)
-			# 	self.request_completed.emit("stop")
-			# total = result['total']
-			# document_id = result['filepath']
-			time.sleep(5)
-			self.request_completed.emit("reading")
-			# self.ui_handler.read_product_list_from_file()
-			# print('end')
-			time.sleep(5)
-			key_arr = ['4580128895130', '4580128895383', '4988067000125']
-			for key in key_arr:
-				key_code = key
-				other_price = 10000
-				self.ui_handler.get_product_url(key_code, other_price)
+			result = self.ui_handler.product_list_download_from_amazon()
+			print(type(result) == str)
+			if(type(result) == str):
+				self.request_completed.emit(result)
+				self.request_completed.emit("stop")
+			
+			cur_position = 0
+			print(result)
+			total = result['total']
+			document_id = result['filepath']
 
-				progress = 100 / len(key_arr) * len(self.ui_handler.products_list)
-				self.request_completed.emit(str(progress))
+			self.request_completed.emit("reading")
+			result = self.ui_handler.read_product_list_from_file(document_id)
+			if(result != 'success'):
+				self.request_completed.emit(result)
+				self.request_completed.emit('stop')
+
+			print(self.ui_handler.products_list)
+			while cur_position < total:
+				product_list = self.ui_handler.get_asin_from_product_list(cur_position)
+				# key_arr = [['4580128895130', '', '', '10000'], ['4580128895383', '', '', '10000'], ['4988067000125', '', '', '10000']]
+				for product in product_list:
+					cur_position += 1
+					key_code = product[0]
+					other_price = product[3]
+					self.ui_handler.get_product_url(key_code, other_price)
+
+					progress = 100 / total * cur_position
+					self.request_completed.emit(str(progress))
 
 		self.request_completed.emit("stop")
 		self.quit()
@@ -252,7 +259,7 @@ class Ui_MainWindow(object):
 	
 	def handle_request_completed(self, response_text):
 		if response_text == "start":
-			self.statusLabel.setText("Downloading ... ")
+			self.statusLabel.setText("ダウンロード中...")
 			self.btn_export.setEnabled(False)
 			self.spinner.start()
 		elif response_text == "stop":
@@ -263,7 +270,10 @@ class Ui_MainWindow(object):
 			self.isStop = True
 		elif response_text == "reading":
 			self.progressBar.setValue(0)
-			self.statusLabel.setText("Reading ... ")
+			self.statusLabel.setText("ファイルを読んでいます...")
+		elif response_text != "start" and response_text != 'stop' and response_text != 'reading' and len(re.findall(r'\d+', response_text) == 0):
+			self.spinner.stop()
+			self.statusLabel.setText(response_text)
 		else:
 			self.spinner.stop()
 			self.statusLabel.setVisible(False)

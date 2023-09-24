@@ -182,6 +182,17 @@ class ActionManagement:
 		else:
 			return ''
 
+	# convert array to str
+	def convert_array_to_string(self, arr):
+		result_str = ''
+		for i in range(len(arr)):
+			if(i == 0):
+				result_str += arr[i]
+			else:
+				result_str += f",{arr[i]}"
+				
+		return result_str
+
 	# get product list from amazon
 	def product_list_download_from_amazon(self):
 		self.access_token = self.get_access_token()
@@ -211,30 +222,43 @@ class ActionManagement:
 		return result
 
 	# get product list from file
-	def read_product_list_from_file(self):
-		# try:
-		# 	i = 0
-		# 	cnt = 0
-		# 	with open(self.file_path, 'r', encoding='utf-8') as file:
-		# 		for line in file.readlines():
-		# 			line = line.strip().split(',')
-		# 			fields = line[0].split('\t')
+	def read_product_list_from_file(self, filepath):
+		try:
+			i = 0
+			filepath = self.amazon_folder / filepath
+			with open(filepath, 'r', encoding='utf-8') as file:
+				for line in file.readlines():
+					line = line.strip().split(',')
+					fields = line[0].split('\t')
 					
-		# 			if i >= 1 and len(fields) >= 2 and fields[-1] == 'Active' and fields[-2] == '送料無料(お急ぎ便無し)':
-		# 				print('insert code in here')
-		# 			i += 1
-		# 	return 'success'
-		# except FileNotFoundError:
-		# 	return ''
-		# except Exception as e:
-		# 	return ''
-		self.access_token = self.get_access_token()
-		asins = 'B0732W4X7G'
-		asin_arr = ['B0732W4X7G']
-		result = self.get_jan_code_by_asin(asin_arr, asins)
-		print(result)
-		return 
+					if i >= 1 and len(fields) >= 2 and fields[-1] == 'Active' and fields[-2] == '送料無料(お急ぎ便無し)':
+						self.products_list.append(fields[1])
+					i += 1
+			return 'success'
+		except FileNotFoundError as e:
+			return e
+		except Exception as e:
+			return e
+	
+	# get product info
+	def get_product_info_by_product_list(self, position):
+		cnt = 0
+		asin_arr = []
+		asins = ''
+		for asin in self.products_list:
+			if(position >= cnt):
+				if(position == cnt):
+					self.access_token = self.get_access_token()
+				
+				if(cnt == (position + 20)):
+					break
+				
+				asin_arr.append(asin)
+			cnt += 1
 
+		asins = self.convert_array_to_string(asin_arr)
+		result = self.get_jan_code_by_asin(asin_arr, asins)
+		return result
 
 	# get product url
 	def get_product_url(self, key_code, other_price):
