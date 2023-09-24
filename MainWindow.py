@@ -38,7 +38,7 @@ class RequestThread(QThread):
 
 			print(self.ui_handler.products_list)
 			while cur_position < total:
-				product_list = self.ui_handler.get_asin_from_product_list(cur_position)
+				product_list = self.ui_handler.get_product_info_by_product_list(cur_position)
 				# key_arr = [['4580128895130', '', '', '10000'], ['4580128895383', '', '', '10000'], ['4988067000125', '', '', '10000']]
 				for product in product_list:
 					cur_position += 1
