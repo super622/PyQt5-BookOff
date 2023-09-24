@@ -42,9 +42,7 @@ class RequestThread(QThread):
 				# key_arr = [['4580128895130', '', '', '10000'], ['4580128895383', '', '', '10000'], ['4988067000125', '', '', '10000']]
 				for product in product_list:
 					cur_position += 1
-					key_code = product[0]
-					other_price = product[3]
-					self.ui_handler.get_product_url(key_code, other_price)
+					self.ui_handler.get_product_url(product)
 
 					progress = 100 / total * cur_position
 					self.request_completed.emit(str(progress))

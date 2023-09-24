@@ -261,45 +261,57 @@ class ActionManagement:
 		return result
 
 	# get product url
-	def get_product_url(self, key_code, other_price):
-		res = requests.get('https://shopping.bookoff.co.jp/search/keyword/' + key_code)
+	def get_product_url(self, product):
+		key_code = product[0]
+		category = product[1]
+		ranking = product[2]
+		other_price = product[3]
+		ranking_flag = 150000
+		
+		if(category == 'game'):
+			ranking_flag = 150000
+		if(category == 'cd'):
+			ranking_flag = 80000
 
-		if res.status_code == 200:
-			page = BeautifulSoup(res.content, "html.parser")
+		if ranking <= ranking_flag:
+			res = requests.get('https://shopping.bookoff.co.jp/search/keyword/' + key_code)
 
-			product_url = page.find(class_='productItem__link').get('href')
-			price_element = page.find(class_='productItem__price').text
-			stock_element = page.find_all(class_="productItem__stock--alert")
+			if res.status_code == 200:
+				page = BeautifulSoup(res.content, "html.parser")
 
-			price_element = price_element.replace(',', '')
-			price = re.findall(r'\d+', price_element)
-			stock = ''
+				product_url = page.find(class_='productItem__link').get('href')
+				price_element = page.find(class_='productItem__price').text
+				stock_element = page.find_all(class_="productItem__stock--alert")
 
-			product_url = "https://shopping.bookoff.co.jp" + product_url
-			price = int(price[0])
-
-			if len(stock_element) > 0:
-				stock = '在庫なし'
-			else:
+				price_element = price_element.replace(',', '')
+				price = re.findall(r'\d+', price_element)
 				stock = ''
-			
-			if other_price > price:
-				percent = price / (other_price / 100)
-				price_status = ''
 
-				if((100 - percent) >= 35):
-					price_status = 'T'
+				product_url = "https://shopping.bookoff.co.jp" + product_url
+				price = int(price[0])
 
-			product_data = {
-				'jan': key_code,
-				'url': product_url,
-				'stock': stock,
-				'site_price': str(price),
-				'amazon_price': str(other_price),
-				'price_status': price_status
-			}
-			self.products_list.append(product_data)
-			self.draw_table(self.products_list)
-		else:
-			self.products_list.append("Not Scraped !")
-			self.draw_table(self.products_list)
+				if len(stock_element) > 0:
+					stock = '在庫なし'
+				else:
+					stock = ''
+				
+				if other_price > price:
+					percent = price / (other_price / 100)
+					price_status = ''
+
+					if((100 - percent) >= 35):
+						price_status = 'T'
+
+				product_data = {
+					'jan': key_code,
+					'url': product_url,
+					'stock': stock,
+					'site_price': str(price),
+					'amazon_price': str(other_price),
+					'price_status': price_status
+				}
+				self.products_list.append(product_data)
+				self.draw_table(self.products_list)
+			# else:
+				# self.products_list.append("Not Scraped !")
+				# self.draw_table(self.products_list)
