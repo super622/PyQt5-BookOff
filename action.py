@@ -152,9 +152,6 @@ class ActionManagement:
 
 	# get Jan code by asin code
 	def get_jan_code_by_asin(self, temp_asin_arr, asins):
-		print(self.access_token)
-		print(temp_asin_arr)
-		print(asins)
 		url = "https://sellingpartnerapi-fe.amazon.com/catalog/2022-04-01/items"
 		headers = {
             "x-amz-access-token": self.access_token,
@@ -232,6 +229,7 @@ class ActionManagement:
 		# 	return ''
 		# except Exception as e:
 		# 	return ''
+		self.access_token = self.get_access_token()
 		asins = 'B0732W4X7G'
 		asin_arr = ['B0732W4X7G']
 		result = self.get_jan_code_by_asin(asin_arr, asins)
