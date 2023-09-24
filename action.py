@@ -12,6 +12,8 @@ from bs4 import BeautifulSoup
 class ActionManagement:
 	products_list = []
 	file_path = ''
+	document_folder = Path.home() / "Documents"
+	amazon_folder = document_folder / "Amazon"
 	
 	def __init__ (self, main_window):
 		self.main_window = main_window
@@ -84,14 +86,12 @@ class ActionManagement:
 			return ''
 
 	# donwload gz file
-	def download_file(self, url, filepath):
+	def download_report_document_file(self, url, filepath):
 		try:
-			document_folder = Path.home() / "Documents"
-			amazon_folder = document_folder / "Amazon"
-			if not amazon_folder.exists():
-				amazon_folder.mkdir(parents=True)
+			if not self.amazon_folder.exists():
+				self.amazon_folder.mkdir(parents=True)
 			
-			filepath = amazon_folder / filepath
+			filepath = self.amazon_folder / filepath
 
 			response = requests.get(url, stream=True)
 			response.raise_for_status()
@@ -109,38 +109,28 @@ class ActionManagement:
 			return False
 
 	# unzip gz file
-	def unzip_file(self, gz_filepath, extracted_filepath):
+	def unzip_report_document_file(self, gz_filepath, extracted_filepath):
 		try:
             # os.chmod(extracted_filepath, 0o666)
-			document_folder = Path.home() / "Documents"
-			amazon_folder = document_folder / "Amazon"
-			filepath = amazon_folder / gz_filepath
-			extracted_filepath = amazon_folder / extracted_filepath
+			filepath = self.amazon_folder / gz_filepath
+			extracted_filepath = self.amazon_folder / extracted_filepath
 
 			with gzip.open(filepath, 'rb') as gz_file:
 				with open(extracted_filepath, 'wb') as output_file:
 					output_file.write(gz_file.read())
 			os.remove(filepath)
-			self.file_path = extracted_filepath
 			return ''
 		except PermissionError as e:
-			product_data = {
-				'result': f'Permission error: {e}'
-			}
-			# return product_data
 			return f'Permission error: {e}'
 		except Exception as e:
-			product_data = {
-				'result': f'An error occurred: {e}'
-			}
-			# return product_data
 			return f'An error occurred: {e}'
 
 	# get product total count
-	def get_content_from_file(self, filepath):
+	def get_content_from_file(self, origin_filepath):
 		try:
 			i = 0
 			cnt = 0
+			filepath = self.amazon_folder / origin_filepath
 			with open(filepath, 'r', encoding='utf-8') as file:
 				for line in file.readlines():
 					line = line.strip().split(',')
@@ -151,7 +141,7 @@ class ActionManagement:
 					i += 1
 					
 			result = {
-                'filepath': filepath,
+                'filepath': origin_filepath,
                 'total': cnt,
             }
 			return result
@@ -160,43 +150,58 @@ class ActionManagement:
 		except Exception as e:
 			return ''
 
+	# get Jan code by asin code
+	def get_jan_code_by_asin(self, temp_asin_arr, asins):
+		url = "https://sellingpartnerapi-fe.amazon.com/catalog/2022-04-01/items"
+		headers = {
+            "x-amz-access-token": self.access_token,
+            "Accept": "application/json"
+        }
+		params = {
+            "marketplaceIds": config.MAKETPLACEID,
+            "sellerId": config.SELLERID,
+            "includedData": "identifiers,attributes,salesRanks",
+            "identifiersType": "ASIN",
+            "identifiers": asins
+        }
+		response = requests.get(url, headers=headers, params=params)
+		result_arr = ['', '', '', ''] * len(temp_asin_arr) # 1. jan code, 2. category, 3. ranking, 4. price
+		if response.status_code == 200:
+			json_response = response.json()
+			if (json_response['items']):
+				for product in json_response['items']:
+					for i in range(len(temp_asin_arr)):
+						if(temp_asin_arr[i] == product['asin']):
+							result_arr[i][0] = product['identifiers'][0]['identifiers'][0]['identifier']
+							result_arr[i][1] = product['salesRanks'][0]['displayGroupRanks'][0]['title']
+							result_arr[i][2] = product['salesRanks'][0]['displayGroupRanks'][0]['rank']
+							result_arr[i][3] = product['attributes']['list_price'][0]['value']
+				return result_arr
+			else:
+				return ''
+		else:
+			return ''
+
 	# get product list from amazon
 	def product_list_download_from_amazon(self):
 		self.access_token = self.get_access_token()
 		if(self.access_token == ''):
-			product_data = {
-				"result": 'アクセストークンを取得できませんでした。'
-			}
-			# self.products_list.append(product_data)
 			return 'アクセストークンを取得できませんでした。'
 		
 		report_document_id = self.get_report_document_id(self.access_token)
 		if(report_document_id == ''):
-			product_data = {
-				'result': 'report document idを取得できません。'
-			}
-			# self.products_list.append(product_data)
 			return 'report document idを取得できません。'
 		
 		report_document_url = self.get_report_gz_url(report_document_id, self.access_token)
 		if(report_document_url == ''):
-			product_data = {
-				'result': 'リストファイルのパスを取得できません。'
-			}
-			# self.products_list.append(product_data)
 			return 'リストファイルのパスを取得できません。'
 		
-		download_flag = self.download_file(report_document_url, f"{report_document_id}.gz")
+		download_flag = self.download_report_document_file(report_document_url, f"{report_document_id}.gz")
 		if(download_flag == False):
-			product_data = {
-				'result': 'ファイルをダウロドしていた途中にエラーが発生しました。'
-			}
-			# self.products_list.append(product_data)
 			return 'ファイルをダウロドしていた途中にエラーが発生しました。'
 		
-		unzip_flag = self.unzip_file(f"{report_document_id}.gz", f"{report_document_id}")
+		unzip_flag = self.unzip_report_document_file(f"{report_document_id}.gz", f"{report_document_id}")
 		if(unzip_flag != ''):
-			# self.products_list.append(unzip_flag)
 			return unzip_flag
 		
 		result = self.get_content_from_file(f"{report_document_id}")
@@ -207,22 +212,27 @@ class ActionManagement:
 
 	# get product list from file
 	def read_product_list_from_file(self):
-		try:
-			i = 0
-			cnt = 0
-			with open(self.file_path, 'r', encoding='utf-8') as file:
-				for line in file.readlines():
-					line = line.strip().split(',')
-					fields = line[0].split('\t')
+		# try:
+		# 	i = 0
+		# 	cnt = 0
+		# 	with open(self.file_path, 'r', encoding='utf-8') as file:
+		# 		for line in file.readlines():
+		# 			line = line.strip().split(',')
+		# 			fields = line[0].split('\t')
 					
-					if i >= 1 and len(fields) >= 2 and fields[-1] == 'Active' and fields[-2] == '送料無料(お急ぎ便無し)':
-						print('')
-					i += 1
-			return 'success'
-		except FileNotFoundError:
-			return ''
-		except Exception as e:
-			return ''
+		# 			if i >= 1 and len(fields) >= 2 and fields[-1] == 'Active' and fields[-2] == '送料無料(お急ぎ便無し)':
+		# 				print('insert code in here')
+		# 			i += 1
+		# 	return 'success'
+		# except FileNotFoundError:
+		# 	return ''
+		# except Exception as e:
+		# 	return ''
+		asins = 'B0732W4X7G'
+		asin_arr = ['B0732W4X7G']
+		result = self.get_jan_code_by_asin(asin_arr, asins)
+		print(result)
+
 
 	# get product url
 	def get_product_url(self, key_code, other_price):

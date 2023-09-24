@@ -1,5 +1,6 @@
 import time
 import xlwt
+import types
 
 import action
 
@@ -22,9 +23,14 @@ class RequestThread(QThread):
 		if not self.ui_handler.main_window.isStop:
 			# result = self.ui_handler.product_list_download_from_amazon()
 			# print(result)
+			# if(type(result) == str):
+			# 	self.request_completed.emit(result)
+			# 	self.request_completed.emit("stop")
+			# total = result['total']
+			# document_id = result['filepath']
 			time.sleep(5)
 			self.request_completed.emit("reading")
-			# self.ui_handler.read_product_list_from_file()
+			self.ui_handler.read_product_list_from_file()
 			time.sleep(5)
 			key_arr = ['4580128895130', '4580128895383', '4988067000125']
 			for key in key_arr:
@@ -188,7 +194,6 @@ class Ui_MainWindow(object):
 			width = self.tbl_dataview.columnWidth(col)
 			settings.setValue(f"columnWidth_{col}", width)
 
-	# Define the custom slot to handle cell clicks
 	def handle_cell_click(self, index):
 		row = index.row()
 		col = index.column()
@@ -264,5 +269,5 @@ class Ui_MainWindow(object):
 	
 	def retranslateUi(self, MainWindow):
 		_translate = QtCore.QCoreApplication.translate
-		MainWindow.setWindowTitle(_translate("MainWindow", "Amazon - BookOffOnline"))
+		MainWindow.setWindowTitle(_translate("MainWindow", "Amazon - BookOff"))
 		self.btn_start.setText(_translate("MainWindow", "開始"))
