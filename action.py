@@ -165,8 +165,7 @@ class ActionManagement:
             "identifiers": asins
         }
 		response = requests.get(url, headers=headers, params=params)
-		print(response)
-		result_arr = ['', '', '', ''] * len(temp_asin_arr) # 1. jan code, 2. category, 3. ranking, 4. price
+		result_arr = [['', '', '', '']] * len(temp_asin_arr) # 1. jan code, 2. category, 3. ranking, 4. price
 		if response.status_code == 200:
 			json_response = response.json()
 			if (json_response['items']):
@@ -234,6 +233,7 @@ class ActionManagement:
 		asin_arr = ['B0732W4X7G']
 		result = self.get_jan_code_by_asin(asin_arr, asins)
 		print(result)
+		return 
 
 
 	# get product url

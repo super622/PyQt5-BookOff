@@ -30,7 +30,8 @@ class RequestThread(QThread):
 			# document_id = result['filepath']
 			time.sleep(5)
 			self.request_completed.emit("reading")
-			self.ui_handler.read_product_list_from_file()
+			# self.ui_handler.read_product_list_from_file()
+			# print('end')
 			time.sleep(5)
 			key_arr = ['4580128895130', '4580128895383', '4988067000125']
 			for key in key_arr:
@@ -255,6 +256,7 @@ class Ui_MainWindow(object):
 			self.btn_export.setEnabled(False)
 			self.spinner.start()
 		elif response_text == "stop":
+			self.spinner.stop()
 			self.btn_start.setText("開始")
 			self.btn_export.setEnabled(True)
 			self.btn_start.setEnabled(True)
