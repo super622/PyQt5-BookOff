@@ -152,6 +152,9 @@ class ActionManagement:
 
 	# get Jan code by asin code
 	def get_jan_code_by_asin(self, temp_asin_arr, asins):
+		print(self.access_token)
+		print(temp_asin_arr)
+		print(asins)
 		url = "https://sellingpartnerapi-fe.amazon.com/catalog/2022-04-01/items"
 		headers = {
             "x-amz-access-token": self.access_token,
@@ -165,6 +168,7 @@ class ActionManagement:
             "identifiers": asins
         }
 		response = requests.get(url, headers=headers, params=params)
+		print(response)
 		result_arr = ['', '', '', ''] * len(temp_asin_arr) # 1. jan code, 2. category, 3. ranking, 4. price
 		if response.status_code == 200:
 			json_response = response.json()

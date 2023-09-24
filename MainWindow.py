@@ -213,9 +213,10 @@ class Ui_MainWindow(object):
 			self.isStop = False
 		else:
 			self.isStop = True
-			self.statusLabel.setVisible(False)
-			self.progressBar.setVisible(True)
+			self.statusLabel.setVisible(True)
+			self.progressBar.setVisible(False)
 			self.btn_start.setEnabled(False)
+			self.spinner.stop()
 			self.request_thread.exit()
 
 	def savefile(self):
