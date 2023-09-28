@@ -49,6 +49,7 @@ class ActionManagement:
 		payload = {
             "grant_type": "refresh_token",
             "refresh_token": self.refresh_token,
+			"score": "sellingpartnerapi::migration",
             "client_id": self.client_id,
             "client_secret": self.client_secret,
         }
@@ -153,6 +154,8 @@ class ActionManagement:
 
 	# get Jan code by asin code
 	def get_jan_code_by_asin(self, temp_asin_arr, asins):
+		print(self.access_token)
+		print(asins)
 		url = "https://sellingpartnerapi-fe.amazon.com/catalog/2022-04-01/items"
 		headers = {
             "x-amz-access-token": self.access_token,
@@ -167,14 +170,14 @@ class ActionManagement:
         }
 		response = requests.get(url, headers=headers, params=params)
 		result_arr = [['', '', '', '']] * len(temp_asin_arr) # 1. jan code, 2. category, 3. ranking, 4. price
-		print(response.status_code)
+		print(response.text)
 		if response.status_code == 200:
 			json_response = response.json()
 			if (json_response['items']):
 				for product in json_response['items']:
 					for i in range(len(temp_asin_arr)):
 						if(temp_asin_arr[i] == product['asin']):
-							result_arr[i][0] = product['identifiers'][0]['identifiers'][0]['identifier']
+							result_arr[i][0] = product['identifiers'][0]['identifiers'][0]['identifier'] if len(product['identifiers'][0]['identifiers']) > 0 else ''
 							result_arr[i][1] = product['salesRanks'][0]['displayGroupRanks'][0]['title']
 							result_arr[i][2] = product['salesRanks'][0]['displayGroupRanks'][0]['rank']
 							result_arr[i][3] = product['attributes']['list_price'][0]['value']
@@ -345,7 +348,7 @@ class ActionManagement:
 				# product_link = 'https://www.amazon.co.jp' + product_sub_link
 
 			asins = self.convert_array_to_string(asin_arr)
-			self.get_access_token()
+			self.access_token = self.get_access_token()
 			return self.get_jan_code_by_asin(asin_arr, asins)
 		else:
 			return ''
