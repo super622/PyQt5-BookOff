@@ -1,6 +1,7 @@
 import gzip
 import os
 import re
+import time
 import requests
 
 import config
@@ -166,6 +167,7 @@ class ActionManagement:
         }
 		response = requests.get(url, headers=headers, params=params)
 		result_arr = [['', '', '', '']] * len(temp_asin_arr) # 1. jan code, 2. category, 3. ranking, 4. price
+		print(response.status_code)
 		if response.status_code == 200:
 			json_response = response.json()
 			if (json_response['items']):
@@ -315,3 +317,35 @@ class ActionManagement:
 			# else:
 				# self.products_list.append("Not Scraped !")
 				# self.draw_table(self.products_list)
+
+	# get product list
+	def get_products_list(self, cur_posotion):
+		url = 'https://www.amazon.co.jp/s?i=software&rh=n%3A689132&s=salesrank&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=689132&pageType=Browse&qid=1695891292&softwareClass=Web+Browser&ref=sr_pg_2'
+		if(cur_posotion >= 50000):
+			url = 'https://www.amazon.co.jp/s?i=dvd&rh=n%3A561958&s=salesrank&page=1&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=561958&pageType=Browse&qid=1695890769&softwareClass=Web+Browser&ref=sr_pg_2'
+		elif (cur_posotion >= 20000):
+			url = 'https://www.amazon.co.jp/s?rh=n%3A561956&s=salesrank&page=1&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=561956&pageType=Browse&softwareClass=Web+Browser&ref=nav_em__mu_0_2_5_6'
+
+		url = 'https://www.amazon.co.jp/s?i=software&rh=n%3A689132&s=salesrank&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=689132&pageType=Browse&qid=1695891292&softwareClass=Web+Browser&ref=sr_pg_2'
+		
+		response = requests.get(url)
+		time.sleep(5)
+		print(response.status_code)
+
+		if response.status_code == 200:
+			page = BeautifulSoup(response.content, "html.parser")
+
+			asin_arr = []
+			asins = ''
+			product_elements = page.find_all(class_="s-asin")
+			for product_element in product_elements:
+				asin = product_element.get('data-asin')
+				asin_arr.append(asin)
+				# title__parent_element = product_element.find(class_='s-product-image-container')
+				# product_sub_link = title__parent_element.find(class_='a-link-normal').get('href')
+				# product_link = 'https://www.amazon.co.jp' + product_sub_link
+
+			asins = self.convert_array_to_string(asin_arr)
+			return self.get_jan_code_by_asin(asin_arr, asins)
+		else:
+			return ''

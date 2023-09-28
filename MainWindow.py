@@ -19,33 +19,36 @@ class RequestThread(QThread):
 		self.request_completed.emit("start")
 
 		if not self.ui_handler.main_window.isStop:
-			result = self.ui_handler.product_list_download_from_amazon()
-			print(type(result) == str)
-			if(type(result) == str):
-				self.request_completed.emit(result)
-				self.request_completed.emit("stop")
+			# result = self.ui_handler.product_list_download_from_amazon()
+			# print(type(result) == str)
+			# if(type(result) == str):
+			# 	self.request_completed.emit(result)
+			# 	self.request_completed.emit("stop")
 			
+			# print(result)
+			# total = result['total']
+			# document_id = result['filepath']
+
+			# self.request_completed.emit("reading")
+			# result = self.ui_handler.read_product_list_from_file(document_id)
+			# if(result != 'success'):
+			# 	self.request_completed.emit(result)
+			# 	self.request_completed.emit('stop')
+
 			cur_position = 0
-			print(result)
-			total = result['total']
-			document_id = result['filepath']
+			while cur_position < 350000:
+				# product_list = self.ui_handler.get_product_info_by_product_list(cur_position)
+				product_list = self.ui_handler.get_products_list(cur_position)
 
-			self.request_completed.emit("reading")
-			result = self.ui_handler.read_product_list_from_file(document_id)
-			if(result != 'success'):
-				self.request_completed.emit(result)
-				self.request_completed.emit('stop')
-
-			while cur_position < total:
-				product_list = self.ui_handler.get_product_info_by_product_list(cur_position)
-				print(product_list)
 				# key_arr = [['4580128895130', '', '', '10000'], ['4580128895383', '', '', '10000'], ['4988067000125', '', '', '10000']]
 				for product in product_list:
 					cur_position += 1
 					self.ui_handler.get_product_url(product)
 
-					progress = 100 / total * cur_position
+					progress = 100 / 350000 * cur_position
 					self.request_completed.emit(str(progress))
+
+				break
 
 		self.request_completed.emit("stop")
 		self.quit()
