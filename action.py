@@ -329,7 +329,6 @@ class ActionManagement:
 		url = 'https://www.amazon.co.jp/s?i=software&rh=n%3A689132&s=salesrank&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=689132&pageType=Browse&qid=1695891292&softwareClass=Web+Browser&ref=sr_pg_2'
 		
 		response = requests.get(url)
-		time.sleep(5)
 		print(response.status_code)
 
 		if response.status_code == 200:
