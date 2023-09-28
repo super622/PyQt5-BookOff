@@ -345,6 +345,7 @@ class ActionManagement:
 				# product_link = 'https://www.amazon.co.jp' + product_sub_link
 
 			asins = self.convert_array_to_string(asin_arr)
+			self.get_access_token()
 			return self.get_jan_code_by_asin(asin_arr, asins)
 		else:
 			return ''
