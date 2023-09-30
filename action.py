@@ -10,9 +10,13 @@ from pathlib import Path
 from PyQt5 import QtWidgets, QtGui
 from bs4 import BeautifulSoup
 
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+
 class ActionManagement:
 	products_list = []
-	file_path = ''
+	cur_page = 0
 	document_folder = Path.home() / "Documents"
 	amazon_folder = document_folder / "Amazon"
 	
@@ -154,7 +158,6 @@ class ActionManagement:
 
 	# get Jan code by asin code
 	def get_jan_code_by_asin(self, temp_asin_arr, asins):
-		print(self.access_token)
 		print(asins)
 		url = "https://sellingpartnerapi-fe.amazon.com/catalog/2022-04-01/items"
 		headers = {
@@ -169,23 +172,66 @@ class ActionManagement:
             "identifiers": asins
         }
 		response = requests.get(url, headers=headers, params=params)
-		result_arr = [['', '', '', '']] * len(temp_asin_arr) # 1. jan code, 2. category, 3. ranking, 4. price
-		print(response.text)
+		# result_arr = [['', '', '', '']] * len(temp_asin_arr) # 1. jan code, 2. category, 3. ranking, 4. price
+		result_arr = []
+		price_arr = []
+		
 		if response.status_code == 200:
 			json_response = response.json()
-			if (json_response['items']):
-				for product in json_response['items']:
-					for i in range(len(temp_asin_arr)):
-						if(temp_asin_arr[i] == product['asin']):
-							result_arr[i][0] = product['identifiers'][0]['identifiers'][0]['identifier'] if len(product['identifiers'][0]['identifiers']) > 0 else ''
-							result_arr[i][1] = product['salesRanks'][0]['displayGroupRanks'][0]['title']
-							result_arr[i][2] = product['salesRanks'][0]['displayGroupRanks'][0]['rank']
-							result_arr[i][3] = product['attributes']['list_price'][0]['value']
+			if (len(json_response['items']) > 0):
+				for i in range(len(json_response['items'])):
+					product = json_response['items'][i]
+					price_arr = self.get_competitivePrice(asins)
+					price = 0
+
+					if len(price_arr) > 0:
+						if(price_arr[i] != None and price_arr[i] != 0):
+							price = price_arr[i]
+						else:
+							price = product['attributes']['list_price'][0]['value'] if 'list_price' in product['attributes'] else '0'
+
+					print(price)
+
+					temp = [
+						product['identifiers'][0]['identifiers'][0]['identifier'] if len(product['identifiers'][0]['identifiers']) > 0 else '',
+						product['salesRanks'][0]['displayGroupRanks'][0]['title'] if len(product['salesRanks'][0]['displayGroupRanks']) > 0 else '',
+						product['salesRanks'][0]['displayGroupRanks'][0]['rank'] if len(product['salesRanks'][0]['displayGroupRanks']) > 0 else '',
+						price
+					]
+					result_arr.append(temp)
 				return result_arr
 			else:
 				return ''
 		else:
 			return ''
+
+	# Get Price of Other sellers
+	def get_competitivePrice(self, asins):
+		url = "https://sellingpartnerapi-fe.amazon.com/products/pricing/v0/competitivePrice"
+		headers = {
+            "x-amz-access-token": self.access_token,
+            "Accept": "application/json"
+        }
+		params = {
+            "MarketplaceId": config.MAKETPLACEID,
+            "Asins": asins,
+            "ItemType": 'Asin'
+        }
+		response = requests.get(url, headers=headers, params=params)
+		result_arr = []
+		
+		if response.status_code == 200:
+			json_response = response.json()
+			for product in json_response['payload']:
+				if(len(product['Product']['CompetitivePricing']['CompetitivePrices']) > 0):
+					price = product['Product']['CompetitivePricing']['CompetitivePrices'][0]['Price']['ListingPrice']['Amount']
+					result_arr.append(int(price))
+				else:
+					result_arr.append(0)
+
+			return result_arr
+		else:
+			return result_arr
 
 	# convert array to str
 	def convert_array_to_string(self, arr):
@@ -268,87 +314,93 @@ class ActionManagement:
 	# get product url
 	def get_product_url(self, product):
 		key_code = product[0]
-		category = product[1]
-		ranking = product[2]
+		# category = product[1]
+		# ranking = product[2]
 		other_price = product[3]
-		ranking_flag = 150000
-		
-		if(category == 'game'):
-			ranking_flag = 150000
-		if(category == 'cd'):
-			ranking_flag = 80000
 
-		if ranking <= ranking_flag:
-			res = requests.get('https://shopping.bookoff.co.jp/search/keyword/' + key_code)
+		res = requests.get('https://shopping.bookoff.co.jp/search/keyword/' + key_code)
 
-			if res.status_code == 200:
-				page = BeautifulSoup(res.content, "html.parser")
+		if res.status_code == 200:
+			page = BeautifulSoup(res.content, "html.parser")
 
+			product_url = page.find(class_='productItem__link')
+			if(product_url != None):
 				product_url = page.find(class_='productItem__link').get('href')
-				price_element = page.find(class_='productItem__price').text
-				stock_element = page.find_all(class_="productItem__stock--alert")
+			else:
+				return 
+			price_element = page.find(class_='productItem__price').text
+			stock_element = page.find_all(class_="productItem__stock--alert")
 
-				price_element = price_element.replace(',', '')
-				price = re.findall(r'\d+', price_element)
+			price_element = price_element.replace(',', '')
+			price = re.findall(r'\d+', price_element)
+			stock = ''
+
+			product_url = "https://shopping.bookoff.co.jp" + product_url
+			price = int(price[0])
+
+			if len(stock_element) > 0:
+				stock = '在庫なし'
+			else:
 				stock = ''
+			
+			price_status = ''
+			if other_price > price:
+				percent = price / (other_price / 100)
+				price_status = ''
 
-				product_url = "https://shopping.bookoff.co.jp" + product_url
-				price = int(price[0])
+				if((100 - percent) >= 35):
+					price_status = 'T'
 
-				if len(stock_element) > 0:
-					stock = '在庫なし'
-				else:
-					stock = ''
-				
-				if other_price > price:
-					percent = price / (other_price / 100)
-					price_status = ''
-
-					if((100 - percent) >= 35):
-						price_status = 'T'
-
-				product_data = {
-					'jan': key_code,
-					'url': product_url,
-					'stock': stock,
-					'site_price': str(price),
-					'amazon_price': str(other_price),
-					'price_status': price_status
-				}
-				self.products_list.append(product_data)
-				self.draw_table(self.products_list)
-			# else:
-				# self.products_list.append("Not Scraped !")
-				# self.draw_table(self.products_list)
+			product_data = {
+				'jan': key_code,
+				'url': product_url,
+				'stock': stock,
+				'site_price': str(price),
+				'amazon_price': str(other_price),
+				'price_status': price_status
+			}
+			self.products_list.append(product_data)
+			self.draw_table(self.products_list)
+		# else:
+			# self.products_list.append("Not Scraped !")
+			# self.draw_table(self.products_list)
 
 	# get product list
 	def get_products_list(self, cur_posotion):
-		url = 'https://www.amazon.co.jp/s?i=software&rh=n%3A689132&s=salesrank&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=689132&pageType=Browse&qid=1695891292&softwareClass=Web+Browser&ref=sr_pg_2'
-		if(cur_posotion >= 50000):
-			url = 'https://www.amazon.co.jp/s?i=dvd&rh=n%3A561958&s=salesrank&page=1&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=561958&pageType=Browse&qid=1695890769&softwareClass=Web+Browser&ref=sr_pg_2'
-		elif (cur_posotion >= 20000):
-			url = 'https://www.amazon.co.jp/s?rh=n%3A561956&s=salesrank&page=1&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=561956&pageType=Browse&softwareClass=Web+Browser&ref=nav_em__mu_0_2_5_6'
-
-		url = 'https://www.amazon.co.jp/s?i=software&rh=n%3A689132&s=salesrank&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=689132&pageType=Browse&qid=1695891292&softwareClass=Web+Browser&ref=sr_pg_2'
+		page = ''
+		if self.cur_page == 1:
+			page = ''
+		else:
+			page = '&page=' + str(self.cur_page)
 		
-		response = requests.get(url)
-		print(response.status_code)
+		print(page)
+		print(cur_posotion)
+		url = f'https://www.amazon.co.jp/s?i=software&rh=n%3A689132&s=salesrank{page}&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=689132&pageType=Browse&qid=1695891292&softwareClass=Web+Browser&ref=sr_pg_2'
+		if(cur_posotion >= 50000):
+			url = f'https://www.amazon.co.jp/s?i=dvd&rh=n%3A561958&s=salesrank{page}&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=561958&pageType=Browse&qid=1695890769&softwareClass=Web+Browser&ref=sr_pg_2'
+		elif (cur_posotion >= 20000):
+			url = f'https://www.amazon.co.jp/s?rh=n%3A561956&s=salesrank{page}&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=561956&pageType=Browse&softwareClass=Web+Browser&ref=nav_em__mu_0_2_5_6'
+		print(url)
+		chrome_options = Options()
+		chrome_options.add_argument("--headless")
+		chrome_options.add_argument("--disable-gpu")
+		chrome_options.add_argument('--log-level=3')
+		driver = webdriver.Chrome(options = chrome_options)
 
-		if response.status_code == 200:
-			page = BeautifulSoup(response.content, "html.parser")
+		asin_arr = []
+		asins = ''
 
-			asin_arr = []
-			asins = ''
-			product_elements = page.find_all(class_="s-asin")
+		try:
+			driver.get(url)
+			product_elements = driver.find_elements(By.CLASS_NAME, 's-asin')
 			for product_element in product_elements:
-				asin = product_element.get('data-asin')
+				asin = product_element.get_attribute('data-asin')
 				asin_arr.append(asin)
-				# title__parent_element = product_element.find(class_='s-product-image-container')
-				# product_sub_link = title__parent_element.find(class_='a-link-normal').get('href')
-				# product_link = 'https://www.amazon.co.jp' + product_sub_link
 
 			asins = self.convert_array_to_string(asin_arr)
 			self.access_token = self.get_access_token()
 			return self.get_jan_code_by_asin(asin_arr, asins)
-		else:
-			return ''
+		except Exception as e:
+			print(e)
+		finally:
+			driver.quit()

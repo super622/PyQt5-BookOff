@@ -38,18 +38,23 @@ class RequestThread(QThread):
 
 			cur_position = 0
 			while cur_position < 350000:
-				# product_list = self.ui_handler.get_product_info_by_product_list(cur_position)
-				product_list = self.ui_handler.get_products_list(cur_position)
+				try:
+					self.ui_handler.cur_page += 1
+					# product_list = self.ui_handler.get_product_info_by_product_list(cur_position)
+					product_list = self.ui_handler.get_products_list(cur_position)
+					print(product_list)
 
-				# key_arr = [['4580128895130', '', '', '10000'], ['4580128895383', '', '', '10000'], ['4988067000125', '', '', '10000']]
-				for product in product_list:
-					cur_position += 1
-					self.ui_handler.get_product_url(product)
+					# key_arr = [['4580128895130', '', '', '10000'], ['4580128895383', '', '', '10000'], ['4988067000125', '', '', '10000']]
+					for product in product_list:
+						cur_position += 1
+						if(product[0] != ''):
+							self.ui_handler.get_product_url(product)
 
-					progress = 100 / 350000 * cur_position
-					self.request_completed.emit(str(progress))
-
-				break
+						progress = 100 / 350000 * cur_position
+						print(progress)
+						self.request_completed.emit(str(progress))
+				except Exception as e:
+					self.request_completed.emit(e)
 
 		self.request_completed.emit("stop")
 		self.quit()
@@ -273,12 +278,13 @@ class Ui_MainWindow(object):
 		elif response_text == "reading":
 			self.progressBar.setValue(0)
 			self.statusLabel.setText("ファイルを読んでいます...")
-		elif response_text != "start" and response_text != 'stop' and response_text != 'reading' and len(re.findall(r'\d+', response_text) == 0):
+		elif response_text != "start" and response_text != 'stop' and response_text != 'reading' and re.findall(r'\d+', response_text) == False:
 			self.spinner.stop()
 			self.statusLabel.setText(response_text)
 		else:
 			self.spinner.stop()
-			self.statusLabel.setVisible(False)
+			cur_position = float(response_text) / (100 / 350000)
+			self.statusLabel.setText(f"350000 個中 {round(cur_position)} 個処理済み")
 			self.progressBar.setVisible(True)
 			self.progressBar.setValue(round(float(response_text)))
 	
