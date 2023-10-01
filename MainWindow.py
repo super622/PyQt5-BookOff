@@ -42,7 +42,6 @@ class RequestThread(QThread):
 					self.ui_handler.cur_page += 1
 					# product_list = self.ui_handler.get_product_info_by_product_list(cur_position)
 					product_list = self.ui_handler.get_products_list(cur_position)
-					print(product_list)
 
 					# key_arr = [['4580128895130', '', '', '10000'], ['4580128895383', '', '', '10000'], ['4988067000125', '', '', '10000']]
 					for product in product_list:
@@ -51,7 +50,6 @@ class RequestThread(QThread):
 							self.ui_handler.get_product_url(product)
 
 						progress = 100 / 350000 * cur_position
-						print(progress)
 						self.request_completed.emit(str(progress))
 				except Exception as e:
 					self.request_completed.emit(e)
@@ -212,8 +210,6 @@ class Ui_MainWindow(object):
 	def handle_cell_click(self, index):
 		row = index.row()
 		col = index.column()
-		print(col)
-		print(self.ui_handler.products_list[row]['url'])
 		if col == 1 and self.ui_handler.products_list[row] != "":
 			import webbrowser
 			webbrowser.open(self.ui_handler.products_list[row]['url'])

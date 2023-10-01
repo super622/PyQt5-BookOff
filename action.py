@@ -185,12 +185,12 @@ class ActionManagement:
 					price = 0
 
 					if len(price_arr) > 0:
-						if(price_arr[i] != None and price_arr[i] != 0):
+						print(price_arr[i])
+						if(int(price_arr[i]) != 0):
 							price = price_arr[i]
 						else:
+							print(f"price => {product['attributes']['list_price'][0]['value'] if 'list_price' in product['attributes'] else '0'}")
 							price = product['attributes']['list_price'][0]['value'] if 'list_price' in product['attributes'] else '0'
-
-					print(price)
 
 					temp = [
 						product['identifiers'][0]['identifiers'][0]['identifier'] if len(product['identifiers'][0]['identifiers']) > 0 else '',
@@ -198,6 +198,7 @@ class ActionManagement:
 						product['salesRanks'][0]['displayGroupRanks'][0]['rank'] if len(product['salesRanks'][0]['displayGroupRanks']) > 0 else '',
 						price
 					]
+					print(temp)
 					result_arr.append(temp)
 				return result_arr
 			else:
