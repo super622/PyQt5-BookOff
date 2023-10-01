@@ -184,26 +184,20 @@ class ActionManagement:
 		if response.status_code == 200:
 			json_response = response.json()
 			if (len(json_response['items']) > 0):
+				price_arr = self.get_competitivePrice(asins)
+				
 				for i in range(len(json_response['items'])):
 					product = json_response['items'][i]
-					price_arr = self.get_competitivePrice(asins)
-					price = 0
-
-					if len(price_arr) > 0:
-						print(f"before => {price_arr[i]}")
-						if(int(price_arr[i]) != 0):
-							price = price_arr[i]
-						else:
-							print(f"after => {product['attributes']['list_price'][0]['value'] if 'list_price' in product['attributes'] else '0'}")
-							price = product['attributes']['list_price'][0]['value'] if 'list_price' in product['attributes'] else '0'
-					print(f"current => {price}")
+					price = product['attributes']['list_price'][0]['value'] if 'list_price' in product['attributes'] else '0'
+					if(price == '0'):
+						price = price_arr[i]
+					
 					temp = [
 						product['identifiers'][0]['identifiers'][0]['identifier'] if len(product['identifiers'][0]['identifiers']) > 0 else '',
 						product['salesRanks'][0]['displayGroupRanks'][0]['title'] if len(product['salesRanks'][0]['displayGroupRanks']) > 0 else '',
 						product['salesRanks'][0]['displayGroupRanks'][0]['rank'] if len(product['salesRanks'][0]['displayGroupRanks']) > 0 else '',
 						price
 					]
-					print(temp)
 					result_arr.append(temp)
 				return result_arr
 
@@ -259,7 +253,7 @@ class ActionManagement:
         }
 		response = requests.get(url, headers=headers, params=params)
 		result_arr = []
-		
+
 		if response.status_code == 200:
 			json_response = response.json()
 			for product in json_response['payload']:
@@ -427,11 +421,14 @@ class ActionManagement:
 	def array_append_and_depend(self, asin_array):
 		if len(asin_array) > 0:
 			self.temp_arr = self.temp_arr + asin_array
-		if(len(self.temp_arr) > 0):
-			return self.temp_arr[0:20]
+		if(len(self.temp_arr) >= 10):
+			result = self.temp_arr[0:10]
+			self.temp_arr = self.temp_arr[10:len(self.temp_arr)]
+			return result
 		else:
 			length = len(self.temp_arr)
-			return self.temp_arr[0:length]
+			result = self.temp_arr[0:length]
+			return result
 
 	# get product list
 	def get_products_list(self, cur_posotion):
@@ -469,12 +466,15 @@ class ActionManagement:
 			for product_element in product_elements:
 				asin = product_element.get_attribute('data-asin')
 				asin_arr.append(asin)
-			
+
+			print(asin_arr)
 			if(len(asin_arr) > 0):
 				asin_arr = self.array_append_and_depend(asin_arr)
 			else:
 				asin_arr = self.array_append_and_depend([])
-			
+
+			print(asin_arr)
+			print(self.temp_arr)
 			asins = self.convert_array_to_string(asin_arr)
 			self.access_token = self.get_access_token()
 			return self.get_jan_code_by_asin(asin_arr, asins)

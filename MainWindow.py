@@ -41,6 +41,7 @@ class RequestThread(QThread):
 		while cur_position < self.total_count:
 			if not self.ui_handler.main_window.isStop:
 				try:
+					cur_position += 1
 					if(cur_position == 150000 or cur_position == 300000):
 						self.ui_handler.cur_page = 0
 
@@ -59,7 +60,6 @@ class RequestThread(QThread):
 				except Exception as e:
 					self.request_completed.emit(e)
 			else:
-				print('sttop')
 				self.request_completed.emit("stop")
 				self.quit()
 				break
@@ -286,7 +286,6 @@ class Ui_MainWindow(object):
 			conn.close()
 
 			for row in rows:
-				print(row[0])
 				sheet.write((row_count + 1), 0, row[0], style = style)
 				sheet.write((row_count + 1), 1, row[1], style = style)
 				sheet.write((row_count + 1), 2, row[2], style = style)
