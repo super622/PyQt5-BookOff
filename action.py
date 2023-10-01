@@ -2,6 +2,7 @@ import gzip
 import os
 import re
 import sqlite3
+import time
 import requests
 import logging
 
@@ -463,6 +464,7 @@ class ActionManagement:
 
 		try:
 			driver.get(url)
+			time.sleep(3)
 			product_elements = driver.find_elements(By.CLASS_NAME, 's-asin')
 			for product_element in product_elements:
 				asin = product_element.get_attribute('data-asin')
