@@ -39,6 +39,9 @@ class RequestThread(QThread):
 			cur_position = 0
 			while cur_position < 350000:
 				try:
+					if(cur_position == 150000 or cur_position == 300000):
+						cur_position = 0
+					
 					self.ui_handler.cur_page += 1
 					# product_list = self.ui_handler.get_product_info_by_product_list(cur_position)
 					product_list = self.ui_handler.get_products_list(cur_position)

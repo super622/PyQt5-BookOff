@@ -18,6 +18,7 @@ from selenium.webdriver.common.by import By
 class ActionManagement:
 	products_list = []
 	cur_page = 0
+	temp_arr = []
 	document_folder = Path.home() / "Documents"
 	amazon_folder = document_folder / "Amazon"
 	
@@ -186,13 +187,13 @@ class ActionManagement:
 					price = 0
 
 					if len(price_arr) > 0:
-						print(price_arr[i])
+						print(f"before => {price_arr[i]}")
 						if(int(price_arr[i]) != 0):
 							price = price_arr[i]
 						else:
-							print(f"price => {product['attributes']['list_price'][0]['value'] if 'list_price' in product['attributes'] else '0'}")
+							print(f"after => {product['attributes']['list_price'][0]['value'] if 'list_price' in product['attributes'] else '0'}")
 							price = product['attributes']['list_price'][0]['value'] if 'list_price' in product['attributes'] else '0'
-
+					print(f"current => {price}")
 					temp = [
 						product['identifiers'][0]['identifiers'][0]['identifier'] if len(product['identifiers'][0]['identifiers']) > 0 else '',
 						product['salesRanks'][0]['displayGroupRanks'][0]['title'] if len(product['salesRanks'][0]['displayGroupRanks']) > 0 else '',
@@ -318,7 +319,7 @@ class ActionManagement:
 		key_code = product[0]
 		# category = product[1]
 		# ranking = product[2]
-		other_price = product[3]
+		other_price = int(product[3])
 
 		res = requests.get('https://shopping.bookoff.co.jp/search/keyword/' + key_code)
 
@@ -353,19 +354,29 @@ class ActionManagement:
 				if((100 - percent) >= 35):
 					price_status = 'T'
 
-			product_data = {
-				'jan': key_code,
-				'url': product_url,
-				'stock': stock,
-				'site_price': str(price),
-				'amazon_price': str(other_price),
-				'price_status': price_status
-			}
-			self.products_list.append(product_data)
-			self.draw_table(self.products_list)
+				product_data = {
+					'jan': key_code,
+					'url': product_url,
+					'stock': stock,
+					'site_price': str(price),
+					'amazon_price': str(other_price),
+					'price_status': price_status
+				}
+				self.products_list.append(product_data)
+				self.draw_table(self.products_list)
 		# else:
 			# self.products_list.append("Not Scraped !")
 			# self.draw_table(self.products_list)
+
+	# array append and depend
+	def array_append_and_depend(self, asin_array):
+		if len(asin_array) > 0:
+			self.temp_arr = self.temp_arr + asin_array
+		if(len(self.temp_arr) > 0):
+			return self.temp_arr[0:20]
+		else:
+			length = len(self.temp_arr)
+			return self.temp_arr[0:length]
 
 	# get product list
 	def get_products_list(self, cur_posotion):
@@ -377,12 +388,12 @@ class ActionManagement:
 		
 		print(page)
 		print(cur_posotion)
-		url = f'https://www.amazon.co.jp/s?i=software&rh=n%3A689132&s=salesrank{page}&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=689132&pageType=Browse&qid=1695891292&softwareClass=Web+Browser&ref=sr_pg_2'
-		if(cur_posotion >= 50000):
-			url = f'https://www.amazon.co.jp/s?i=dvd&rh=n%3A561958&s=salesrank{page}&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=561958&pageType=Browse&qid=1695890769&softwareClass=Web+Browser&ref=sr_pg_2'
-		elif (cur_posotion >= 20000):
+		url = f'https://www.amazon.co.jp/s?i=dvd&rh=n%3A561958&s=salesrank{page}&page=2&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=561958&pageType=Browse&qid=1696132034&softwareClass=Web+Browser&ref=sr_pg_2'
+		if(cur_posotion >= 150000):
 			url = f'https://www.amazon.co.jp/s?rh=n%3A561956&s=salesrank{page}&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=561956&pageType=Browse&softwareClass=Web+Browser&ref=nav_em__mu_0_2_5_6'
-		print(url)
+		elif (cur_posotion >= 300000):
+			url = f'https://www.amazon.co.jp/s?i=software&rh=n%3A689132&s=salesrank{page}&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=689132&pageType=Browse&qid=1695891292&softwareClass=Web+Browser&ref=sr_pg_2'		
+
 		logging.basicConfig(filename='selenium.log', level=logging.INFO)
 		chrome_options = Options()
 		chrome_options.add_argument("--headless")
@@ -392,16 +403,19 @@ class ActionManagement:
 
 		asin_arr = []
 		asins = ''
-		time.sleep(2)
 
 		try:
 			driver.get(url)
-			time.sleep(3)
 			product_elements = driver.find_elements(By.CLASS_NAME, 's-asin')
 			for product_element in product_elements:
 				asin = product_element.get_attribute('data-asin')
 				asin_arr.append(asin)
-
+			
+			if(len(asin_arr) > 0):
+				asin_arr = self.array_append_and_depend(asin_arr)
+			else:
+				asin_arr = self.array_append_and_depend([])
+			
 			asins = self.convert_array_to_string(asin_arr)
 			self.access_token = self.get_access_token()
 			return self.get_jan_code_by_asin(asin_arr, asins)
