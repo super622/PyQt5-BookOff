@@ -3,6 +3,7 @@ import os
 import re
 import time
 import requests
+import logging
 
 import config
 
@@ -382,6 +383,7 @@ class ActionManagement:
 		elif (cur_posotion >= 20000):
 			url = f'https://www.amazon.co.jp/s?rh=n%3A561956&s=salesrank{page}&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=561956&pageType=Browse&softwareClass=Web+Browser&ref=nav_em__mu_0_2_5_6'
 		print(url)
+		logging.basicConfig(filename='selenium.log', level=logging.INFO)
 		chrome_options = Options()
 		chrome_options.add_argument("--headless")
 		chrome_options.add_argument("--disable-gpu")
