@@ -407,6 +407,7 @@ class ActionManagement:
 		try:
 			driver.get(url)
 			product_elements = driver.find_elements(By.CLASS_NAME, 's-asin')
+			print(product_elements)
 			for product_element in product_elements:
 				asin = product_element.get_attribute('data-asin')
 				asin_arr.append(asin)
