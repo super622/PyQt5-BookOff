@@ -21,7 +21,6 @@ class RequestThread(QThread):
 	def run(self):
 		self.request_completed.emit("start")
 
-		if not self.ui_handler.main_window.isStop:
 			# result = self.ui_handler.product_list_download_from_amazon()
 			# print(type(result) == str)
 			# if(type(result) == str):
@@ -38,11 +37,12 @@ class RequestThread(QThread):
 			# 	self.request_completed.emit(result)
 			# 	self.request_completed.emit('stop')
 
-			cur_position = 0
-			while cur_position < self.total_count:
+		cur_position = 0
+		while cur_position < self.total_count:
+			if not self.ui_handler.main_window.isStop:
 				try:
 					if(cur_position == 150000 or cur_position == 300000):
-						cur_position = 0
+						self.ui_handler.cur_page = 0
 
 					self.ui_handler.cur_page += 1
 					# product_list = self.ui_handler.get_product_info_by_product_list(cur_position)
@@ -58,6 +58,11 @@ class RequestThread(QThread):
 						self.request_completed.emit(str(progress))
 				except Exception as e:
 					self.request_completed.emit(e)
+			else:
+				print('sttop')
+				self.request_completed.emit("stop")
+				self.quit()
+				break
 
 		self.request_completed.emit("stop")
 		self.quit()

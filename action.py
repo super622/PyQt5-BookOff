@@ -5,8 +5,10 @@ import sqlite3
 import requests
 import logging
 
+
 import config
 
+from subprocess import CREATE_NO_WINDOW
 from pathlib import Path
 from PyQt5 import QtWidgets, QtGui
 from bs4 import BeautifulSoup
@@ -355,9 +357,15 @@ class ActionManagement:
 			cursor = conn.cursor()
 
 			if cur_position == 1:
-				cursor.execute("DELETE FROM history")
-				conn.commit()
-			
+				table = cursor.execute("SELECT * FROM sqlite_master WHERE name='history'")
+				rows = table.fetchall()
+				if len(rows) == 0:
+					cursor.execute("CREATE TABLE history (id integer, jan text, url text, stock text, site_price text, amazon_price text, price_status text)")
+					conn.commit()
+				else:
+					cursor.execute("DELETE FROM history")
+					conn.commit()
+
 			key_code = product[0]
 			other_price = int(product[3])
 			
@@ -440,11 +448,14 @@ class ActionManagement:
 		elif (cur_posotion >= 300000):
 			url = f'https://www.amazon.co.jp/s?i=software&rh=n%3A689132&s=salesrank{page}&language=en&applicationType=BROWSER&deviceOS=Windows&handlerName=BrowsePage&pageId=689132&pageType=Browse&qid=1695891292&softwareClass=Web+Browser&ref=sr_pg_2'		
 
-		logging.basicConfig(filename='selenium.log', level=logging.INFO)
+		# logging.basicConfig(filename='selenium.log', level=logging.INFO)
 		chrome_options = Options()
-		chrome_options.add_argument("--headless")
+		chrome_options.add_argument("--headless=new")
 		chrome_options.add_argument("--disable-gpu")
-		chrome_options.add_argument('--log-level=3')
+		chrome_options.add_argument("--no-sandbox")
+		chrome_options.add_argument("--window-size=0,0")
+		chrome_options.creationflags = CREATE_NO_WINDOW
+		chrome_options.experimental_options
 		driver = webdriver.Chrome(options = chrome_options)
 
 		asin_arr = []
