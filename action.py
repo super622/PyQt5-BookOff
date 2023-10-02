@@ -1,7 +1,7 @@
 import gzip
 import os
 import re
-import time
+import sqlite3
 import requests
 import logging
 
@@ -203,6 +203,40 @@ class ActionManagement:
 					print(temp)
 					result_arr.append(temp)
 				return result_arr
+
+				# price_arr = self.get_competitivePrice(asins)
+				# if price_arr is None:
+				# 	price_arr = [0] * len(temp_asin_arr)
+				
+				# price = 0
+				# for product in json_response['items']:
+				# 	print(f"product => {product['asin']}")
+				# 	for i in range(len(temp_asin_arr)):
+				# 		if len(price_arr) > 0:
+				# 			print(f"before => {price_arr[i]}")
+				# 			if(int(price_arr[i]) != 0):
+				# 				price = price_arr[i]
+				# 			else:
+				# 				print(f"after => {product['attributes']['list_price'][0]['value'] if 'list_price' in product['attributes'] else '0'}")
+				# 				price = product['attributes']['list_price'][0]['value'] if 'list_price' in product['attributes'] else '0'
+				# 		print(f"current => {price}")
+
+				# 		if(temp_asin_arr[i] == product['asin']):
+				# 			print(f"selected => {price} asin = {temp_asin_arr[i]}")
+				# 			print(len(result_arr))
+				# 			print(i)
+				# 			print('selected')
+				# 			result_arr[len(result_arr) - len(result_arr) + i] = [
+				# 				product["identifiers"][0]["identifiers"][0]["identifier"]
+				# 				if product.get("identifiers") else "",
+				# 				product["salesRanks"][0]["displayGroupRanks"][0]["title"]
+				# 				if product.get("salesRanks") else "",
+				# 				product["salesRanks"][0]["displayGroupRanks"][0]["rank"]
+				# 				if product.get("salesRanks") else "",
+				# 				price
+				# 			]
+				# 	print(result_arr)
+				# return result_arr
 			else:
 				return ''
 		else:
@@ -315,55 +349,67 @@ class ActionManagement:
 		return result
 
 	# get product url
-	def get_product_url(self, product):
-		key_code = product[0]
-		# category = product[1]
-		# ranking = product[2]
-		other_price = int(product[3])
+	def get_product_url(self, product, cur_position):
+		try:
+			conn = sqlite3.connect('database.db')
+			cursor = conn.cursor()
 
-		res = requests.get('https://shopping.bookoff.co.jp/search/keyword/' + key_code)
-
-		if res.status_code == 200:
-			page = BeautifulSoup(res.content, "html.parser")
-
-			product_url = page.find(class_='productItem__link')
-			if(product_url != None):
-				product_url = page.find(class_='productItem__link').get('href')
-			else:
-				return 
-			price_element = page.find(class_='productItem__price').text
-			stock_element = page.find_all(class_="productItem__stock--alert")
-
-			price_element = price_element.replace(',', '')
-			price = re.findall(r'\d+', price_element)
-			stock = ''
-
-			product_url = "https://shopping.bookoff.co.jp" + product_url
-			price = int(price[0])
-
-			if len(stock_element) > 0:
-				stock = '在庫なし'
-			else:
-				stock = ''
+			if cur_position == 1:
+				cursor.execute("DELETE FROM history")
+				conn.commit()
 			
-			price_status = ''
-			if other_price > price:
-				percent = price / (other_price / 100)
+			key_code = product[0]
+			other_price = int(product[3])
+			
+			res = requests.get(f'https://shopping.bookoff.co.jp/search/keyword/{key_code}')
+			
+			if res.status_code == 200:
+				page = BeautifulSoup(res.content, "html.parser")
+				
+				product_url = page.find(class_='productItem__link')
+				
+				if product_url:
+					product_url = "https://shopping.bookoff.co.jp" + product_url.get('href')
+				else:
+					return
+				
+				price_element = page.find(class_='productItem__price').text
+				stock_element = page.find_all(class_="productItem__stock--alert")
+				price_element = price_element.replace(',', '')
+				price = int(re.findall(r'\d+', price_element)[0])
+				stock = '在庫なし' if stock_element else ''
+				
 				price_status = ''
+				if other_price > price:
+					percent = price / (other_price / 100)
+					
+					if (100 - percent) >= 35:
+						price_status = 'T'
+				
+					product_data = {
+						'jan': key_code,
+						'url': product_url,
+						'stock': stock,
+						'site_price': str(price),
+						'amazon_price': str(other_price),
+						'price_status': price_status
+					}
+					self.products_list.append(product_data)
 
-				if((100 - percent) >= 35):
-					price_status = 'T'
-
-				product_data = {
-					'jan': key_code,
-					'url': product_url,
-					'stock': stock,
-					'site_price': str(price),
-					'amazon_price': str(other_price),
-					'price_status': price_status
-				}
-				self.products_list.append(product_data)
-				self.draw_table(self.products_list)
+					# Insert data into the database
+					cursor.execute("INSERT INTO history (id, jan, url, stock, site_price, amazon_price, price_status) "
+								"VALUES (?, ?, ?, ?, ?, ?, ?)",
+								(cur_position, key_code, product_url, stock, price, other_price, price_status))
+					conn.commit()
+					
+					self.draw_table(self.products_list)
+		
+		except sqlite3.Error as e:
+			print(f"SQLite error: {e}")
+		except requests.RequestException as e:
+			print(f"Request error: {e}")
+		finally:
+			conn.close()
 		# else:
 			# self.products_list.append("Not Scraped !")
 			# self.draw_table(self.products_list)
@@ -407,7 +453,6 @@ class ActionManagement:
 		try:
 			driver.get(url)
 			product_elements = driver.find_elements(By.CLASS_NAME, 's-asin')
-			print(product_elements)
 			for product_element in product_elements:
 				asin = product_element.get_attribute('data-asin')
 				asin_arr.append(asin)

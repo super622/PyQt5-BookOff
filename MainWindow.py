@@ -1,5 +1,6 @@
 import re
 import xlwt
+import sqlite3
 
 import action
 
@@ -15,6 +16,7 @@ class RequestThread(QThread):
 	def __init__(self, handler):
 		super().__init__()
 		self.ui_handler = handler
+		self.total_count = 350000
 
 	def run(self):
 		self.request_completed.emit("start")
@@ -37,11 +39,11 @@ class RequestThread(QThread):
 			# 	self.request_completed.emit('stop')
 
 			cur_position = 0
-			while cur_position < 350000:
+			while cur_position < self.total_count:
 				try:
 					if(cur_position == 150000 or cur_position == 300000):
 						cur_position = 0
-					
+
 					self.ui_handler.cur_page += 1
 					# product_list = self.ui_handler.get_product_info_by_product_list(cur_position)
 					product_list = self.ui_handler.get_products_list(cur_position)
@@ -50,9 +52,9 @@ class RequestThread(QThread):
 					for product in product_list:
 						cur_position += 1
 						if(product[0] != ''):
-							self.ui_handler.get_product_url(product)
+							self.ui_handler.get_product_url(product, cur_position)
 
-						progress = 100 / 350000 * cur_position
+						progress = 100 / self.total_count * cur_position
 						self.request_completed.emit(str(progress))
 				except Exception as e:
 					self.request_completed.emit(e)
@@ -65,6 +67,7 @@ class Ui_MainWindow(object):
 
 	def __init__(self):
 		super().__init__()
+		self.total_count = 350000
 		self.spinner = None
 		self.progressBar = None
 		self.statusLabel = None
@@ -74,6 +77,7 @@ class Ui_MainWindow(object):
 		self.horizontalLayout_2 = None
 		self.horizontalLayout_3 = None
 		self.btn_export = None
+		self.btn_history = None
 		self.gridLayout = None
 		self.centralwidget = None
 		self.verticalLayout = None
@@ -138,10 +142,20 @@ class Ui_MainWindow(object):
 		self.btn_export.setMinimumSize(QtCore.QSize(16777215, 30))
 		self.btn_export.setMaximumSize(QtCore.QSize(16777215, 30))
 		self.btn_export.setObjectName("btn_export")
-		self.btn_export.setText("エクスポート")
+		self.btn_export.setText("出力")
 		self.btn_export.setEnabled(False)
 		self.btn_export.clicked.connect(self.savefile)
 		self.horizontalLayout_2.addWidget(self.btn_export)
+
+		self.btn_history = QtWidgets.QPushButton(self.centralwidget)
+		self.btn_history.setMinimumSize(QtCore.QSize(16777215, 30))
+		self.btn_history.setMaximumSize(QtCore.QSize(16777215, 30))
+		self.btn_history.setObjectName("btn_history")
+		self.btn_history.setText("以前の履歴出力")
+		self.btn_history.setEnabled(True)
+		self.btn_history.clicked.connect(self.savefile)
+		self.horizontalLayout_2.addWidget(self.btn_history)
+
 		self.verticalLayout.addLayout(self.horizontalLayout_2)
 		
 		self.horizontalLayout = QtWidgets.QHBoxLayout()
@@ -252,21 +266,37 @@ class Ui_MainWindow(object):
 			sheet.write(0, 5, '価格差', style = style)
 
 			row_count = 0
-			for r in range(model.rowCount()):
-				sheet.write((row_count + 1), 0, model.data(model.index(row_count, 0)), style = style)
-				sheet.write((row_count + 1), 1, model.data(model.index(row_count, 1)), style = style)
-				sheet.write((row_count + 1), 2, model.data(model.index(row_count, 2)), style = style)
-				sheet.write((row_count + 1), 3, model.data(model.index(row_count, 3)), style = style)
-				sheet.write((row_count + 1), 4, model.data(model.index(row_count, 4)), style = style)
-				sheet.write((row_count + 1), 5, model.data(model.index(row_count, 5)), style = style)
+			# for r in range(model.rowCount()):
+			# 	sheet.write((row_count + 1), 0, model.data(model.index(row_count, 0)), style = style)
+			# 	sheet.write((row_count + 1), 1, model.data(model.index(row_count, 1)), style = style)
+			# 	sheet.write((row_count + 1), 2, model.data(model.index(row_count, 2)), style = style)
+			# 	sheet.write((row_count + 1), 3, model.data(model.index(row_count, 3)), style = style)
+			# 	sheet.write((row_count + 1), 4, model.data(model.index(row_count, 4)), style = style)
+			# 	sheet.write((row_count + 1), 5, model.data(model.index(row_count, 5)), style = style)
+			# 	row_count += 1
+			conn = sqlite3.connect('database.db')
+			cur = conn.cursor()
+			cur.execute("SELECT * FROM history")
+			rows = cur.fetchall()
+			conn.close()
+
+			for row in rows:
+				print(row[0])
+				sheet.write((row_count + 1), 0, row[0], style = style)
+				sheet.write((row_count + 1), 1, row[1], style = style)
+				sheet.write((row_count + 1), 2, row[2], style = style)
+				sheet.write((row_count + 1), 3, row[3], style = style)
+				sheet.write((row_count + 1), 4, row[4], style = style)
+				sheet.write((row_count + 1), 5, row[5], style = style)
 				row_count += 1
+
 			wbk.save(filename)
 			return
 	
 	def handle_request_completed(self, response_text):
 		if response_text == "start":
 			self.statusLabel.setText("ダウンロード中...")
-			self.btn_export.setEnabled(False)
+			self.btn_history.setEnabled(False)
 			self.spinner.start()
 		elif response_text == "stop":
 			self.spinner.stop()
@@ -282,11 +312,12 @@ class Ui_MainWindow(object):
 			self.statusLabel.setText(response_text)
 		else:
 			self.spinner.stop()
-			cur_position = float(response_text) / (100 / 350000)
-			self.statusLabel.setText(f"350000 個中 {round(cur_position)} 個処理済み")
+			cur_position = float(response_text) / (100 / self.total_count)
+			self.statusLabel.setText(f"{self.total_count} 個中 {round(cur_position)} 個処理済み")
 			self.progressBar.setVisible(True)
+			self.btn_export.setEnabled(True)
 			self.progressBar.setValue(round(float(response_text)))
-	
+
 	def retranslateUi(self, MainWindow):
 		_translate = QtCore.QCoreApplication.translate
 		MainWindow.setWindowTitle(_translate("MainWindow", "Amazon - BookOff"))
